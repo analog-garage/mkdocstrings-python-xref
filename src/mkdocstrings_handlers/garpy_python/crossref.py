@@ -16,7 +16,8 @@
 from __future__ import annotations
 
 import re
-from typing import List, Optional, cast
+import sys
+from typing import Callable, List, Optional, Union, cast
 
 from griffe.dataclasses import Docstring, Object
 from mkdocstrings.loggers import get_logger
@@ -27,6 +28,8 @@ __all__ = [
 
 logger = get_logger(__name__)
 
+# line numbers are not reliable before python 3.8
+_supports_linenums = sys.version_info >= (3,8)
 
 def _re_or(*exps: str) -> str:
     """Construct an "or" regular expression from a sequence of regular expressions.
@@ -93,6 +96,10 @@ _RE_ID = re.compile("[a-zA-Z_][a-zA-Z0-9_.]*")
 """Regular expression that matches a qualified python identifier."""
 
 
+def _always_ok(_ref:str) -> bool:
+    return True
+
+
 class _RelativeCrossrefProcessor:
     """
     A callable object that substitutes relative cross-reference expressions.
@@ -107,13 +114,15 @@ class _RelativeCrossrefProcessor:
     _cur_offset: int
     _cur_ref_parts: List[str]
     _ok: bool
+    _check_ref: Union[Callable[[str],bool],Callable[[str],bool]]
 
-    def __init__(self, doc: Docstring):
+    def __init__(self, doc: Docstring, checkref: Optional[Callable[[str], bool]] = None):
         self._doc = doc
         self._cur_match = None
         self._cur_input = ""
         self._cur_offset = 0
         self._cur_ref_parts = []
+        self._check_ref = checkref or _always_ok
         self._ok = True
 
     def __call__(self, match: re.Match) -> str:
@@ -136,7 +145,8 @@ class _RelativeCrossrefProcessor:
                 "cross-reference substitution\nin %s:\n[%s][%s] -> [...][%s]",
                 cast(Object,self._doc.parent).canonical_path, title, ref, new_ref
             )
-            # TODO look up new_ref to make sure it existsm
+            if not self._check_ref(new_ref):
+                self._error(f"Cannot load reference '{new_ref}'")
             result = f"[{title}][{new_ref}]"
         else:
             result = match.group(0)
@@ -240,8 +250,9 @@ class _RelativeCrossrefProcessor:
             prefix = f"file://{parent.filepath}:"
             line = doc.lineno
             if line is not None: # pragma: no branch
-                # Add line offset to match in docstring
-                line += doc.value.count("\n", 0, self._cur_offset)
+                if _supports_linenums:
+                    # Add line offset to match in docstring
+                    line += doc.value.count("\n", 0, self._cur_offset)
                 prefix += f"{line}:"
                 # It would be nice to add the column as well, but we cannot determine
                 # that without knowing how much the doc string was unindented.
@@ -252,18 +263,20 @@ class _RelativeCrossrefProcessor:
         self._ok = False
 
 
-def substitute_relative_crossrefs(obj: Object) -> None:
+def substitute_relative_crossrefs(obj: Object, checkref: Optional[Callable[[str],bool]] = None) -> None:
     """Recursively expand relative cross-references in all docstrings in tree.
 
     Arguments:
         obj: a Griffe [Object][griffe.dataclasses.] whose docstrings should be modified
+        checkref: optional function to check whether computed cross-reference is valid.
+            Should throw an exception if not valid.
     """
     doc = obj.docstring
 
     if doc is not None:
-        doc.value = _RE_REL_CROSSREF.sub(_RelativeCrossrefProcessor(doc), doc.value)
+        doc.value = _RE_REL_CROSSREF.sub(_RelativeCrossrefProcessor(doc, checkref=checkref), doc.value)
 
     for member in obj.members.values():
         if isinstance(member, Object): # pragma: no branch
-            substitute_relative_crossrefs(member)
+            substitute_relative_crossrefs(member, checkref= checkref)
 

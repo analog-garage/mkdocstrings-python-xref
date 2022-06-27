@@ -34,7 +34,8 @@ __all__ = [
 logger = get_logger(__name__)
 
 class GarpyPythonHandler(PythonHandler):
-    """Extended version of mkdocstrings Python handler"""
+    """Extended version of mkdocstrings Python handler
+    """
 
     handler_name: str = __name__.rsplit('.', 2)[1]
 
@@ -63,11 +64,18 @@ class GarpyPythonHandler(PythonHandler):
         final_config = ChainMap(config, self.default_config)
 
         if final_config["relative_crossrefs"]:
-            substitute_relative_crossrefs(data)
+            def _check_id(ref:str) -> bool:
+                try:
+                    self.collect(ref, {})
+                    return True
+                except Exception: # pylint: disable=broad-except
+                    return False
+            substitute_relative_crossrefs(data, checkref=_check_id)
 
         return super().render(data, config)
 
     def get_templates_dir(self, handler: str) -> Path:
+        """See [render][.barf]"""
         if handler == self.handler_name:
             handler = 'python'
         return super().get_templates_dir(handler)
