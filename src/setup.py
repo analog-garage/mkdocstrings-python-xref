@@ -19,14 +19,14 @@ from garpy.setuptools import read_requires_from_env_yml, read_version
 
 os.chdir(os.path.dirname(__file__) or '.')
 src = '.'
-name = 'mkdocstrings_handlers.garpy'
+name = 'garpy.mkdocstrings'
 
 try:
     requires = read_requires_from_env_yml(os.path.join(src, 'runtime-env.yml'))
 
     setup(
         name=name,
-        version=read_version(os.path.join(src, *name.split('.'))),
+        version=read_version(os.path.join(src, 'mkdocstrings_handlers', 'garpy_python')),
         packages=find_namespace_packages(src, include=['mkdocstrings_handlers', 'mkdocstrings_handlers.*']),
         package_dir={'':src,},
         package_data={'': ['VERSION','py.typed'],},
