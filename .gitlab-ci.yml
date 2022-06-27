@@ -9,7 +9,6 @@ build:
     - 'conda config --set custom_channels.garage-conda-local https://artifactory.analog.com/artifactory'
     - 'conda install -c conda-forge -c garage-conda-local make garconda>=0.3.3.dev1'
     - 'make create-ci-env'
-    - 'conda activate garconfig-dev'
     - 'make lint'
     - 'make coverage-test'
     - 'make doc'

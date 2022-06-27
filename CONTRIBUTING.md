@@ -12,7 +12,7 @@ To (re)create a conda development environment for this project run:
 
 ```
 make createdev
-conda activate garconfig-dev
+conda activate garpy.mkdocstrings
 ```
 
 After you have created the environment for the first time, you can configure your IDE
