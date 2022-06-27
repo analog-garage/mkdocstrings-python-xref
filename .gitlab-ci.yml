@@ -1,0 +1,34 @@
+image: continuumio/miniconda3:latest
+
+build:
+  tags:
+    - docker
+  script:
+    - '. /opt/conda/etc/profile.d/conda.sh'
+    - 'conda activate base'
+    - 'conda config --set custom_channels.garage-conda-local https://artifactory.analog.com/artifactory'
+    - 'conda install -c conda-forge -c garage-conda-local make garconda>=0.3.3.dev1'
+    - 'make create-ci-env'
+    - 'conda activate garconfig-dev'
+    - 'make lint'
+    - 'make coverage-test'
+    - 'make doc'
+    - 'mv htmlcov/ site/coverage'
+  artifacts:
+    paths:
+      - site
+
+
+pages:
+  stage: deploy
+  tags:
+    - docker
+  script:
+    - mv site/ public/
+  dependencies:
+    - build
+  only:
+    - main
+  artifacts:
+    paths:
+      - public

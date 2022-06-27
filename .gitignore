@@ -1,0 +1,29 @@
+# MacOS
+.DS_Store
+
+# Make
+custom.mk
+
+# Python
+__pycache__
+*.pyc
+
+# Generated files
+*.egg-info
+build/
+dist/
+# ignore .eggs directory created by setup.py
+.eggs/
+.conda-built
+.coverage
+/htmlcov/
+/site/
+/pages-tmp/
+/public/
+/tests/.aws/
+
+# git
+*.orig
+
+
+

@@ -1,0 +1,69 @@
+site_name: "garpy.mkdocstrings"
+site_description: "A an extened Python handler for mkdocstrings."
+repo_url: https://gitlab.analog.com/boston-garage/garpy.mkdocstrings
+site_url: https://gitlab.analog.com/boston-garage/garpy.mkdocstrings
+repo_name: GitLab
+site_dir: site
+
+watch:
+  - src/mkdocstrings_handlers
+
+nav:
+- Home: index.md
+#  - Changelog: changelog.md
+#  - License: license.md
+# defer to gen-files + literate-nav
+
+theme:
+  name: material
+  logo: logo.png
+  features:
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.top
+  palette:
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: teal
+    accent: purple
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to dark mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: black
+    accent: lime
+    toggle:
+      icon: material/weather-night
+      name: Switch to light mode
+
+markdown_extensions:
+- admonition
+- pymdownx.snippets:
+    check_paths: true
+- pymdownx.superfences
+- pymdownx.tabbed:
+    alternate_style: true
+
+
+plugins:
+- search
+- mkdocstrings:
+    default_handler: garpy_python
+    handlers:
+      garpy_python:
+        paths: [src]
+        import:
+        - https://docs.python.org/3/objects.inv
+        - https://mkdocstrings.github.io/objects.inv
+        - https://mkdocstrings.github.io/griffe/objects.inv
+        options:
+          docstring_style: google
+          docstring_options:
+            ignore_init_summary: yes
+          merge_init_into_class: yes
+          relative_crossrefs: yes
+          separate_signature: yes
+          show_source: no
+          show_root_full_path: no
+

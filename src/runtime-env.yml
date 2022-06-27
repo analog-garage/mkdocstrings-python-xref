@@ -1,0 +1,7 @@
+channels:
+  - garage-conda-local
+  - conda-forge
+
+dependencies:
+  - python >=3.7
+  - mkdocstrings-python >=0.7.1,<0.8
