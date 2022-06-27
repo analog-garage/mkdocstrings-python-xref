@@ -1,0 +1,44 @@
+{% set data = load_setup_py_data() %}
+
+package:
+  name: garpy.mkdocstrings
+  version: {{ data['version'] }}
+
+source:
+  - path: ../src
+  - path: ../tests
+    folder: tests
+
+build:
+  noarch: python
+  script: pip install . -vv --no-deps
+
+requirements:
+  build:
+    - python 3.8
+    - setuptools
+    - garpy.setuptools >=0.3.3.dev1
+
+  run:
+    - python {{ data['python_requires'] }}
+
+    {% for dep in data['install_requires'] %}
+    - {{ dep.lower() }}
+    {% endfor %}
+
+
+
+test:
+  source_files:
+    - tests
+  requires:
+    - pytest
+  imports:
+    - mkdocstrings_handlers.garpy_python
+  commands:
+    - pytest tests
+
+about:
+  home: {{ data['url'] }}
+  summary: {{ data['description'] }}
+  description: {{ data['description']}}
