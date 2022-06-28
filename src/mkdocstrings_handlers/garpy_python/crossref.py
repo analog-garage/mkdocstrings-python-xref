@@ -28,7 +28,7 @@ __all__ = [
 
 logger = get_logger(__name__)
 
-# line numbers are not reliable before python 3.8
+# line numbers from griffe are not reliable before python 3.8; this may eventually be fixed...
 _supports_linenums = sys.version_info >= (3,8)
 
 def _re_or(*exps: str) -> str:
@@ -250,7 +250,7 @@ class _RelativeCrossrefProcessor:
             prefix = f"file://{parent.filepath}:"
             line = doc.lineno
             if line is not None: # pragma: no branch
-                if _supports_linenums:
+                if _supports_linenums: # pragma: no branch
                     # Add line offset to match in docstring
                     line += doc.value.count("\n", 0, self._cur_offset)
                 prefix += f"{line}:"
