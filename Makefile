@@ -27,11 +27,11 @@ COVERAGE_HTML := $(abspath htmlcov)
 SRC := src
 
 PACKAGE := garpy.mkdocstrings
-PACKAGE_VERSION_PATH := $(SRC)/mkdocstrings_handlers/garpy/VERSION
+PACKAGE_VERSION_PATH := $(SRC)/mkdocstrings_handlers/garpy_python/VERSION
 PACKAGE_COMMAND := $(CAT) $(PACKAGE_VERSION_PATH)
 PACKAGE_VER := $(shell $(PACKAGE_COMMAND))
 
-SRC_FILES := $(wildcard src/mkdocstrings_handlers/garpy/*.py) $(PYTHON_VERSION_PATH)
+SRC_FILES := $(wildcard src/mkdocstrings_handlers/garpy_python/*.py) $(PYTHON_VERSION_PATH)
 
 USE_TEST_CHANNEL :=
 ifeq ($(USE_TEST_CHANNEL),)
