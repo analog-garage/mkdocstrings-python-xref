@@ -64,13 +64,7 @@ class GarpyPythonHandler(PythonHandler):
         final_config = ChainMap(config, self.default_config)
 
         if final_config["relative_crossrefs"]:
-            def _check_id(ref:str) -> bool:
-                try:
-                    self.collect(ref, {})
-                    return True
-                except Exception: # pylint: disable=broad-except
-                    return False
-            substitute_relative_crossrefs(data, checkref=_check_id)
+            substitute_relative_crossrefs(data, checkref=self._check_ref)
 
         return super().render(data, config)
 
@@ -79,4 +73,13 @@ class GarpyPythonHandler(PythonHandler):
         if handler == self.handler_name:
             handler = 'python'
         return super().get_templates_dir(handler)
+
+    def _check_ref(self, ref:str) -> bool:
+        """Check for existence of reference"""
+        try:
+            self.collect(ref, {})
+            return True
+        except Exception:  # pylint: disable=broad-except
+            # Only expect a CollectionError but we may as well catch everything.
+            return False
 

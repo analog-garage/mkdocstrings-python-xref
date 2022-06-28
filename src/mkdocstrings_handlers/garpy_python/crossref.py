@@ -269,7 +269,7 @@ def substitute_relative_crossrefs(obj: Object, checkref: Optional[Callable[[str]
     Arguments:
         obj: a Griffe [Object][griffe.dataclasses.] whose docstrings should be modified
         checkref: optional function to check whether computed cross-reference is valid.
-            Should throw an exception if not valid.
+            Should return True if valid, False if not valid.
     """
     doc = obj.docstring
 
