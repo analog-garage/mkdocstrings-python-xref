@@ -10,13 +10,15 @@ watch:
 
 nav:
 - Home: index.md
+#- Python API:
+#    - mkdocstrings_handlers.garpy_pthon.handler: api/handler.md
 #  - Changelog: changelog.md
 #  - License: license.md
 # defer to gen-files + literate-nav
 
 theme:
   name: material
-  logo: logo.png
+  logo: garpy.mkdocstrings.svg
   features:
   - navigation.tabs
   - navigation.tabs.sticky
@@ -24,7 +26,7 @@ theme:
   palette:
   - media: "(prefers-color-scheme: light)"
     scheme: default
-    primary: teal
+    primary: white
     accent: purple
     toggle:
       icon: material/weather-sunny
