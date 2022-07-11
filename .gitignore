@@ -22,6 +22,11 @@ dist/
 /public/
 /tests/.aws/
 
+# tox
+/.tox/
+/tox-env.yml
+/tox-requirements.txt
+
 # git
 *.orig
 
