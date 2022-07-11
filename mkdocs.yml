@@ -4,17 +4,23 @@ repo_url: https://gitlab.analog.com/boston-garage/garpy.mkdocstrings
 site_url: https://gitlab.analog.com/boston-garage/garpy.mkdocstrings
 repo_name: GitLab
 site_dir: site
+site_author: Christopher Barber
+copyright: Copyright &copy; 2022  Analog Devices, Inc.
 
 watch:
   - src/mkdocstrings_handlers
 
 nav:
-- Home: index.md
-#- Python API:
-#    - mkdocstrings_handlers.garpy_pthon.handler: api/handler.md
-#  - Changelog: changelog.md
-#  - License: license.md
-# defer to gen-files + literate-nav
+- User Guide:
+    - Overview: index.md
+    - Relative cross-references: relative-crossref.md
+- Setup:
+    - Installation: install.md
+    - Configuration: config.md
+- Support:
+  - Getting help: support.md
+  - Changelog: changelog.md
+  - License: license.md
 
 theme:
   name: material
@@ -47,6 +53,11 @@ markdown_extensions:
 - pymdownx.tabbed:
     alternate_style: true
 
+extra:
+  social:
+    - icon: fontawesome/brands/slack
+      link: https://cto-adi.slack.com/archives/C8ZQJ9DA4
+      name: "#ag-software in the CTO ADI workspace"
 
 plugins:
 - search
