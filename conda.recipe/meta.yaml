@@ -29,14 +29,14 @@ requirements:
 
 
 test:
-  source_files:
-    - tests
-  requires:
-    - pytest
+#  source_files:
+#    - tests
+# requires:
+#    - pytest
   imports:
     - mkdocstrings_handlers.garpy_python
-  commands:
-    - pytest tests
+#  commands:
+#    - pytest tests
 
 about:
   home: {{ data['url'] }}
