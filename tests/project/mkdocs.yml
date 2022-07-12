@@ -1,0 +1,60 @@
+site_name: "myproj"
+site_description: "A test project"
+site_dir: site
+
+watch:
+  - src/myproj
+
+nav:
+- Home: index.md
+- API:
+    - myproj.foo: foo.md
+    - myproj.bar: bar.md
+
+theme:
+  name: material
+  features:
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.top
+  palette:
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: white
+    accent: purple
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to dark mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: black
+    accent: lime
+    toggle:
+      icon: material/weather-night
+      name: Switch to light mode
+
+markdown_extensions:
+- admonition
+- pymdownx.snippets:
+    check_paths: true
+- pymdownx.superfences
+- pymdownx.tabbed:
+    alternate_style: true
+
+plugins:
+- search
+- mkdocstrings:
+    default_handler: garpy_python
+    handlers:
+      garpy_python:
+        paths: [src]
+        options:
+          docstring_style: google
+          docstring_options:
+            ignore_init_summary: yes
+          merge_init_into_class: yes
+          separate_signature: yes
+          show_source: no
+          show_root_full_path: no
+          relative_crossrefs: yes
+

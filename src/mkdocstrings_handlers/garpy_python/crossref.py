@@ -251,7 +251,8 @@ class _RelativeCrossrefProcessor:
             line = doc.lineno
             if line is not None: # pragma: no branch
                 if _supports_linenums: # pragma: no branch
-                    # Add line offset to match in docstring
+                    # Add line offset to match in docstring. This can still be
+                    # short if the doc string has leading newlines.
                     line += doc.value.count("\n", 0, self._cur_offset)
                 prefix += f"{line}:"
                 # It would be nice to add the column as well, but we cannot determine

@@ -50,7 +50,7 @@ DEV_ENV := garpy.mkdocstrings
 # Creation args
 CREATE_DEV_ARGS :=
 GARCONDA_CREATE_ARGS := --root $(SRC) $(CREATE_DEV_ARGS)
-DEV_CREATE := $(GARCONDA) create-dev -n $(DEV_ENV) $(GARCONDA_CREATE_ARGS) --python-version 3.7
+DEV_CREATE := $(GARCONDA) create-dev -n $(DEV_ENV) $(GARCONDA_CREATE_ARGS) --python-version 3.8
 CI_CREATE := $(DEV_CREATE)
 
 # Verify upload args
