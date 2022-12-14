@@ -40,8 +40,11 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
     """
     mod1 = Module(name="mod1", filepath=Path("mod1.py"))
     mod2 = Module(name="mod2", parent=mod1, filepath=Path("mod2.py"))
+    mod1.members.update(mod2=mod2)
     cls1 = Class(name="Class1", parent=mod2)
+    mod2.members.update(Class1=cls1)
     meth1 = Function(name="meth1", parent=cls1)
+    cls1.members.update(meth1=meth1)
 
     monkeypatch.setattr(mkdocstrings_handlers.garpy_python.crossref, '_supports_linenums', True)
 
@@ -90,6 +93,8 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
     assert_sub(meth1, "foo", "(m).", "mod1.mod2.foo")
     assert_sub(meth1, "foo", "mod3.", "mod3.foo")
     assert_sub(meth1, "foo", "^^.", "mod1.mod2.foo", checkref = lambda x: True)
+    assert_sub(meth1, "Class1", "(p).mod2.", "mod1.mod2.Class1")
+    assert_sub(mod1, "Class1", "(p).mod2.Class1", "mod1.mod2.Class1")
 
     # Error cases
 

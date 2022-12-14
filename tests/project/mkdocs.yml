@@ -10,6 +10,8 @@ nav:
 - API:
     - myproj.foo: foo.md
     - myproj.bar: bar.md
+    - myproj.pkg: pkg.md
+    - myproj.baz: pkg-baz.md
 
 theme:
   name: material

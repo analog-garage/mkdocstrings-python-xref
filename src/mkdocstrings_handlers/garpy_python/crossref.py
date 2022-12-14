@@ -72,6 +72,7 @@ _RE_REL = re.compile(
             _re_named("up", r"\^+") + r"\.?",
             _re_named("class", r"\([cC]\)\.?"),
             _re_named("module", r"\([mM]\)\.?"),
+            _re_named("package", r"\([pP]\)\.?"),
             _re_named("current", r"\."),
         ),
         optional=True,
@@ -89,6 +90,7 @@ If the 'parent' group is matched, then exactly one of its subgroups will be pres
 - 'up': an expression of the form '^'+ '.'?
 - 'class': an expression of the form '(c)' '.'?
 - 'module': an expression of the form '(m)' '.'?
+- 'package': an expression of the form '(p)' '.'?
 - 'current': an expression of the form '.'
 """
 
@@ -186,6 +188,7 @@ class _RelativeCrossrefProcessor:
             self._process_current_specifier(obj, ref_match)
             or self._process_class_specifier(obj, ref_match)
             or self._process_module_specifier(obj, ref_match)
+            or self._process_package_specifier(obj, ref_match)
             or self._process_up_specifier(obj, ref_match)
         )
 
@@ -218,6 +221,29 @@ class _RelativeCrossrefProcessor:
                 if rel_obj is None:  # pragma: no cover
                     self._error(f"{obj.canonical_path} not in a module!")
                     break
+        return rel_obj
+
+    def _process_package_specifier(self, obj: Object, ref_match: re.Match) -> Optional[Object]:
+        # griffe does not distinguish between modules and packages, so we identify a package
+        # as a module that contains other modules. A module that has no parent is considered to
+        # be a package even if it does not contain modules.
+        rel_obj: Object | None = None
+        if ref_match.group("package"):
+            rel_obj = obj
+            if rel_obj.is_module and rel_obj.modules:
+                # module contains modules, so it is a package
+                return rel_obj
+
+            while not rel_obj.is_module:
+                rel_obj = rel_obj.parent
+                if rel_obj is None:  # pragma: no cover
+                    self._error(f"{obj.canonical_path} not in a module!")
+                    break
+
+            if rel_obj is not None and rel_obj.parent is not None:  # pragma: no branch
+                # If module has no parent, we will treat it as a package
+                rel_obj = rel_obj.parent
+
         return rel_obj
 
     def _process_up_specifier(self, obj: Object, ref_match: re.Match) -> Optional[Object]:

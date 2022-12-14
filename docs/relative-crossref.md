@@ -46,6 +46,10 @@ The relative path specifier has the following form:
 * If the path begins with `(m)`, that will be replaced by the path of the
     module that contains the doc-string
 
+* If the path begins with `(p)`, that will be replaced by the path of the
+    package that contains the doc-string. If there is only one module in the 
+    system it will be treated as a package.
+
 * If the path begins with one or more `^` characters, then that will go
    up one level in the path of the current doc string for each `^`
    
