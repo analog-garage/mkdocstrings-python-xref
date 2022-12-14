@@ -39,6 +39,8 @@ def test_handler(tmpdir: PathLike,
     """
 
     config_file = os.path.join(tmpdir, 'mkdocs.yml')
+    os.mkdir(os.path.join(tmpdir, 'path1'))
+    os.mkdir(os.path.join(tmpdir, 'path2'))
 
     #
     # Test construction
