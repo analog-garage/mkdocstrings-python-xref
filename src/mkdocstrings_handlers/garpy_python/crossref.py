@@ -69,7 +69,7 @@ _RE_REL = re.compile(
     _re_named(
         "parent",
         _re_or(
-            _re_named("up", r"\^+") + r"\.?",
+            _re_named("up", r"(?:\^+|\.+(?=\.))") + r"\.?",
             _re_named("class", r"\([cC]\)\.?"),
             _re_named("module", r"\([mM]\)\.?"),
             _re_named("package", r"\([pP]\)\.?"),
@@ -87,7 +87,7 @@ final '.' character.
 
 If the 'parent' group is matched, then exactly one of its subgroups will be present:
 
-- 'up': an expression of the form '^'+ '.'?
+- 'up': an expression of the form '\\^'+ '\\.'? or '\\.\\.+'
 - 'class': an expression of the form '(c)' '.'?
 - 'module': an expression of the form '(m)' '.'?
 - 'package': an expression of the form '(p)' '.'?

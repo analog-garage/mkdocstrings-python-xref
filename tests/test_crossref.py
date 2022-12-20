@@ -85,6 +85,7 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
     assert_sub(cls1, "foo", ".", "mod1.mod2.Class1.foo")
     assert_sub(meth1, "foo", "^", "mod1.mod2.Class1")
     assert_sub(meth1, "foo", "^.", "mod1.mod2.Class1.foo")
+    assert_sub(meth1, "foo", "..", "mod1.mod2.Class1.foo")
     assert_sub(meth1, "foo", ".bar", "mod1.mod2.Class1.bar")
     assert_sub(meth1, "foo", "(c)", "mod1.mod2.Class1")
     assert_sub(meth1, "foo", "(c).", "mod1.mod2.Class1.foo")
@@ -93,8 +94,9 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
     assert_sub(meth1, "foo", "(m).", "mod1.mod2.foo")
     assert_sub(meth1, "foo", "mod3.", "mod3.foo")
     assert_sub(meth1, "foo", "^^.", "mod1.mod2.foo", checkref = lambda x: True)
+    assert_sub(meth1, "foo", "...", "mod1.mod2.foo", checkref = lambda x: True)
     assert_sub(meth1, "Class1", "(p).mod2.", "mod1.mod2.Class1")
-    assert_sub(mod1, "Class1", "(p).mod2.Class1", "mod1.mod2.Class1")
+    assert_sub(mod1, "Class1", "(P).mod2.Class1", "mod1.mod2.Class1")
 
     # Error cases
 

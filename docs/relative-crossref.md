@@ -35,7 +35,7 @@ The relative path specifier has the following form:
 * If the path ends in `.` then the title text will be appended to the path
   (ignoring bold, italic or code markup).
 
-* If the path begins with `.` then it will be expanded relative to the path
+* If the path begins with a single `.` then it will be expanded relative to the path
     of the doc-string in which it occurs. As a special case, if the current
     doc-string is for a function or method, then `.` will instead be
     expanded relative to the function's parent (i.e. the same as `^.`).
@@ -51,7 +51,9 @@ The relative path specifier has the following form:
     system it will be treated as a package.
 
 * If the path begins with one or more `^` characters, then that will go
-   up one level in the path of the current doc string for each `^`
+   up one level in the path of the current doc string for each `^`. Additionally,
+   if the path begins with two or more `.` characters, then that will go
+   up on level for each `.` after the first.
    
 These are demonstrated here:
 
@@ -64,8 +66,9 @@ These are demonstrated here:
             [`that_method`][.]
             [init method][(c).__init__]
             [this module][(m)]
+            [this package][(p)]
             [OtherClass][(m).]
-            [some_func][^^.]
+            [some_func][^^.] or [some_func][...]
             """
     ```
 
@@ -78,10 +81,9 @@ These are demonstrated here:
             [`that_method`][mypkg.mymod.MyClass.that_method]
             [init method][mypkg.mymod.MyClass.__init__]
             [this module][mypkg.mymod]
+            [this package][mypkg]
             [OtherClass][mypkg.mymod.OtherClass]
             [some_func][mypkg.mymod.some_func]
-            [
-            
             """
     ```
 
