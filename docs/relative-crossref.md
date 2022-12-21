@@ -36,9 +36,12 @@ The relative path specifier has the following form:
   (ignoring bold, italic or code markup).
 
 * If the path begins with a single `.` then it will be expanded relative to the path
-    of the doc-string in which it occurs. As a special case, if the current
+    of the doc-string in which it occurs. 
+
+    As a deprecated special case, if the current
     doc-string is for a function or method, then `.` will instead be
     expanded relative to the function's parent (i.e. the same as `^.`).
+    This will turn into an error in a future version.
 
 * If the path begins with `(c)`, that will be replaced by the path of the
     class that contains the doc-string

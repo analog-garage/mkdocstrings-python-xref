@@ -198,7 +198,14 @@ class _RelativeCrossrefProcessor:
     def _process_current_specifier(self, obj: Object, ref_match: re.Match) -> Optional[Object]:
         rel_obj: Object | None = None
         if ref_match.group("current"):
-            rel_obj = obj.parent if obj.is_function else obj
+            if obj.is_function:
+                self._error(
+                    f"Deprecated use of '.' in function {obj.canonical_path} changed to '..'",
+                    just_warn=True
+                )
+                rel_obj = obj.parent
+            else:
+                rel_obj = obj
         return rel_obj
 
     def _process_class_specifier(self, obj: Object, ref_match: re.Match) -> Optional[Object]:
@@ -259,7 +266,7 @@ class _RelativeCrossrefProcessor:
                     break
         return rel_obj
 
-    def _error(self, msg: str) -> None:
+    def _error(self, msg: str, just_warn:bool = False) -> None:
         """Logs a warning for a specific crossref in a docstring.
 
         This will include the filepath and line number if available.
@@ -287,7 +294,7 @@ class _RelativeCrossrefProcessor:
 
         logger.warning(prefix + msg)
 
-        self._ok = False
+        self._ok = just_warn
 
 
 def substitute_relative_crossrefs(obj: Object, checkref: Optional[Callable[[str],bool]] = None) -> None:

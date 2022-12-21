@@ -81,12 +81,11 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
             assert not caplog.records
         assert actual == f"[{title}][{expected}]"
 
-    assert_sub(meth1, "foo", ".", "mod1.mod2.Class1.foo")
     assert_sub(cls1, "foo", ".", "mod1.mod2.Class1.foo")
     assert_sub(meth1, "foo", "^", "mod1.mod2.Class1")
     assert_sub(meth1, "foo", "^.", "mod1.mod2.Class1.foo")
     assert_sub(meth1, "foo", "..", "mod1.mod2.Class1.foo")
-    assert_sub(meth1, "foo", ".bar", "mod1.mod2.Class1.bar")
+    assert_sub(meth1, "foo", "^.bar", "mod1.mod2.Class1.bar")
     assert_sub(meth1, "foo", "(c)", "mod1.mod2.Class1")
     assert_sub(meth1, "foo", "(c).", "mod1.mod2.Class1.foo")
     assert_sub(meth1, "foo", "(C).baz", "mod1.mod2.Class1.baz")
@@ -100,11 +99,13 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
 
     # Error cases
 
+    assert_sub(meth1, "foo", ".", "mod1.mod2.Class1.foo", warning="Deprecated use of '.'")
+    assert_sub(meth1, "foo", ".bar", "mod1.mod2.Class1.bar", warning="Deprecated use of '.'")
     assert_sub(meth1, "foo", ".bad+syntax", warning="Bad syntax")
-    assert_sub(meth1, "bad id", ".", warning="not a qualified identifier")
+    assert_sub(meth1, "bad id", "..", warning="not a qualified identifier")
     assert_sub(mod2, "foo", "(c)", warning="not in a class")
     assert_sub(meth1, "foo", "^^^^", warning="too many levels")
-    assert_sub(meth1, "foo", ".", "mod1.mod2.Class1.foo",
+    assert_sub(meth1, "foo", "..", "mod1.mod2.Class1.foo",
                warning = "Cannot load reference 'mod1.mod2.Class1.foo'",
                checkref=lambda x: False)
 
@@ -127,7 +128,7 @@ def test_substitute_relative_crossrefs(caplog: pytest.LogCaptureFixture) -> None
 
     meth1.docstring = Docstring(
         """
-    [foo][.]
+    [foo][..]
     [bar][(m).]
     """,
         parent=meth1,
