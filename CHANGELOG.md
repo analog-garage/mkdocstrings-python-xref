@@ -1,6 +1,6 @@
 # garpy.mkdocstring changes
 
-## 0.8.3 (in progress)
+## 0.8.3
 - Support `..` syntax for parent in addition to `^`
 - Deprecate use of `.` to be relative to parent when used in functions/methods.
 - Based on mkdocstrings-python >=1.1
