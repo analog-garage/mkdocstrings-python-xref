@@ -1,5 +1,5 @@
 CONDA := conda
-GARCONDA := garconda --min-version 0.3.3.post0
+GARCONDA := garconda --min-version 0.3.4
 ECHO := echo
 RM := rm
 RMDIR := $(RM) -rf

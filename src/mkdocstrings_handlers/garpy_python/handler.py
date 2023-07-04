@@ -1,4 +1,4 @@
-#  Copyright (c) 2022.   Analog Devices Inc.
+#  Copyright (c) 2022=2023.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from collections import ChainMap
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List, Mapping, Optional
 
 from griffe.dataclasses import Object
 from mkdocstrings.loggers import get_logger
@@ -60,8 +60,8 @@ class GarpyPythonHandler(PythonHandler):
             **config
         )
 
-    def render(self, data: Object, config: dict) -> str:
-        final_config = ChainMap(config, self.default_config)
+    def render(self, data: Object, config: Mapping[str,Any]) -> str:
+        final_config = ChainMap(config, self.default_config) # type: ignore[arg-type]
 
         if final_config["relative_crossrefs"]:
             substitute_relative_crossrefs(data, checkref=self._check_ref)
