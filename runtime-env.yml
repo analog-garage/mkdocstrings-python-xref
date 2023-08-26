@@ -4,4 +4,5 @@ channels:
 
 dependencies:
   - python >=3.8
-  - mkdocstrings-python >=1.1,<1.4
+  - mkdocstrings-python >=1.5.2,<2.0
+  - griffe >=0.35.1  # for bug fix
