@@ -176,7 +176,7 @@ coverage-show:
 	@$(CONDA_RUN) python -m webbrowser file://$(COVERAGE_HTML)/index.html
 
 pylint:
-	$(CONDA_RUN) pylint src/mkdocstrings_handlers/* tests/* $(PYLINT_ARGS)
+	$(CONDA_RUN) pylint src/mkdocstrings_handlers tests $(PYLINT_ARGS)
 
 mypy:
 	$(CONDA_RUN) mypy $(MYPY_ARGS)

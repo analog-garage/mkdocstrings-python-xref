@@ -43,3 +43,63 @@ packages = [
 dependency-files = [
     "runtime-env.yml",
 ]
+
+[tool.mypy]
+check_untyped_defs = true
+mypy_path = "src"
+namespace_packages = true
+explicit_package_bases = true
+files = [
+    "src/mkdocstrings_handlers",
+    "tests"
+    ]
+show_error_codes = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[tool.pylint.main]
+jobs = 0
+# Minimum Python version to use for version dependent checks.
+py-version = "3.8"
+
+[tool.pylint.format]
+max-line-length = 110
+max-module-lines = 2000
+
+[tool.pylint."messages control"]
+disable = [
+    "bad-inline-option",
+    "c-extension-no-member",
+    "consider-using-from-import",
+    "deprecated-pragma",
+    "disallowed-name",
+    "file-ignored",
+    "fixme",
+    "import-outside-toplevel",
+    "invalid-characters-in-docstring",
+    "invalid-name",
+    "locally-disabled",
+    "multiple-statements",
+    "no-else-return",
+    "raw-checker-failed",
+    "superfluous-parens",
+    "suppressed-message",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-branches",
+    "too-many-instance-attributes",
+    "too-many-locals",
+    "too-many-public-methods",
+    "too-many-statements",
+    "trailing-newlines",
+    "trailing-whitespace",
+    "unspecified-encoding",
+    "unused-wildcard-import",
+    "use-dict-literal",
+    "use-symbolic-message-instead",
+    "useless-suppression",
+    "wrong-import-order",
+    "wrong-import-position",
+    "wrong-spelling-in-comment",
+    "wrong-spelling-in-docstring",
+]
