@@ -1,6 +1,0 @@
-# Including requirements via manifest.in allows:
-# - development conda installs to easily install depdencies *from* conda while the
-#   package-under-development itself is installed from source via `pip install -e .`
-# - tox to find the same requirements file.
-# - setup.py as run *in* tox to find the same requirements file.
-include runtime-env.yml

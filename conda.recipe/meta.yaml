@@ -1,44 +1,48 @@
-{% set data = load_setup_py_data() %}
+{% set data = load_file_data('conda-meta-data.json') %}
 
 package:
   name: garpy.mkdocstrings
   version: {{ data['version'] }}
 
 source:
+  - path: ../pyproject.toml
+  - path: ../conda-meta-data.json
+  - path: ../runtime-env.yml
+  - path: ../LICENSE.md
   - path: ../src
+    folder: src
   - path: ../tests
     folder: tests
 
 build:
   noarch: python
-  script: pip install . -vv --no-deps
+  script: pip install . -vv --no-deps --no-build-isolation
 
 requirements:
   build:
     - python 3.8
-    - setuptools
-    - garpy.setuptools >=0.3.3.dev1
+    - hatch-garconda >=0.2.4
 
   run:
-    - python {{ data['python_requires'] }}
+    - python {{ data['requires-python'] }}
 
-    {% for dep in data['install_requires'] %}
+    {% for dep in data['conda-dependencies'] %}
     - {{ dep.lower() }}
     {% endfor %}
 
 
 
 test:
-#  source_files:
-#    - tests
-# requires:
-#    - pytest
+  source_files:
+    - tests
+  requires:
+    - pytest >=7.4
+    - beautifulsoup4 >=4.12
+    - mkdocs-material >=8.2
   imports:
     - mkdocstrings_handlers.garpy_python
-#  commands:
-#    - pytest tests
+  commands:
+    - pytest tests
 
 about:
-  home: {{ data['url'] }}
-  summary: {{ data['description'] }}
   description: {{ data['description']}}

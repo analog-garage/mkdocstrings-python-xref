@@ -1,0 +1,45 @@
+[build-system]
+requires = ["hatchling", "hatch-garconda"]
+build-backend = "hatchling.build"
+
+[project]
+name = "garpy.mkdocstrings"
+description = "Enhanced mkdocstrings python handler"
+authors = [
+    {name = "Christopher Barber", email="Christopher.Barber@analog.com" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dynamic = ["version", "requires-python", "dependencies"]
+
+[tool.hatch.version]
+path = "src/mkdocstrings_handlers/garpy_python/VERSION"
+pattern = "\\s*(?P<version>[\\w.]*)"
+
+[tool.hatch.build]
+include = [
+    "src/**/*.py",
+    "src/mkdocstrings_handlers/garpy_python/VERSION",
+    "src/mkdocstrings_handlers/garpy_python/py.typed",
+]
+
+[tool.hatch.build.targets.sdist]
+packages = [
+    "src/mkdocstrings_handlers",
+    "src/mkdocstrings_handlers/garpy_python",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/mkdocstrings_handlers",
+    "src/mkdocstrings_handlers/garpy_python",
+]
+
+[tool.hatch.metadata.hooks.garconda]
+dependency-files = [
+    "runtime-env.yml",
+]

@@ -21,6 +21,11 @@ dist/
 /pages-tmp/
 /public/
 /tests/.aws/
+conda-meta-data.json
+# stray build artifacts
+*.whl
+*.tar.bz2
+*.conda
 
 # tox
 /.tox/

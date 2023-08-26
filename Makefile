@@ -48,8 +48,8 @@ PYPI_UPLOAD_CHANNEL := adi-pypi-local$(UPLOAD_TEST)
 DEV_ENV := garpy.mkdocstrings
 
 # Creation args
-CREATE_DEV_ARGS :=
-GARCONDA_CREATE_ARGS := --root $(SRC) $(CREATE_DEV_ARGS)
+CREATE_DEV_ARGS := --file runtime-env.yml --file test-env.yml --file doc-env.yml
+GARCONDA_CREATE_ARGS := $(CREATE_DEV_ARGS)
 DEV_CREATE := $(GARCONDA) create-dev -n $(DEV_ENV) $(GARCONDA_CREATE_ARGS) --python-version 3.8
 CI_CREATE := $(DEV_CREATE)
 
@@ -153,10 +153,10 @@ pytest:
 test: lint pytest
 
 # We generate the tox dependency files from the official versions.
-tox-env.yml: src/runtime-env.yml src/test-env.yml
+tox-env.yml: runtime-env.yml test-env.yml
 	$(GARCONDA) env merge --out $@ $^
 
-tox-requirements.txt: src/runtime-env.yml src/test-env.yml
+tox-requirements.txt: runtime-env.yml test-env.yml
 	$(GARCONDA) env merge --for-pip --out $@ $^
 
 tox-dependencies: tox-env.yml tox-requirements.txt
@@ -184,18 +184,21 @@ mypy:
 lint: pylint mypy
 
 build-wheel:
-	$(GARCONDA) build-wheel -n $(DEV_ENV) --setup-path $(SRC)
+	$(CONDA_RUN) pip wheel . --no-deps --no-build-isolation -w dist
 
-build-conda:
-	$(GARCONDA) build --root $(SRC) $(abspath .)
+conda-meta-data.json: runtime-env.yml pyproject.toml
+	$(CONDA_RUN) hatchling-garconda metadata --overwrite --out $@
 
-build-conda-no-test:
-	$(GARCONDA) build --root $(SRC) $(abspath .) --no-test
+build-conda: conda-meta-data.json
+	$(GARCONDA) build $(abspath .)
+
+build-conda-no-test: conda-meta-data.json
+	$(GARCONDA) build $(abspath .) --no-test
 
 build: build-wheel build-conda
 
 upload-wheel:
-	$(GARCONDA) upload-pypi -u $(USERNAME) $(SRC)/dist/* -c $(PYPI_UPLOAD_CHANNEL)
+	$(GARCONDA) upload-pypi -u $(USERNAME) dist/* -c $(PYPI_UPLOAD_CHANNEL)
 
 upload-conda:
 	$(GARCONDA) upload '$(PACKAGE)-$(PACKAGE_VER)-*' -u $(USERNAME) -y -c $(CONDA_UPLOAD_CHANNEL) $(UPLOAD_OVERWRITE)
@@ -230,8 +233,8 @@ showdoc: site/index.html
 showdocs: showdoc
 
 clean-build:
-	-@$(RMDIR) src/build
-	-@$(RMDIR) src/dist
+	-@$(RMDIR) build
+	-@$(RMDIR) dist
 
 clean-doc:
 	-@$(RMDIR) site
