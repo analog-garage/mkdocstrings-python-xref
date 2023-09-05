@@ -1,28 +1,6 @@
-# garpy.mkdocstring changes
+# mkdocstring-python-xref changes
 
-## 1.5.2.1
+## 1.6.2
 
-- Fix issue with 1.5.2
-
-## 1.5.2
-
-- Use mkdocstrings-python >=1.5.2,<2.0
-
-## 0.8.4
-
-- Restrict mkdocstrings-python to <1.4.0 (pending support for that version)
-
-## 0.8.3
-- Support `..` syntax for parent in addition to `^`
-- Deprecate use of `.` to be relative to parent when used in functions/methods.
-- Based on mkdocstrings-python >=1.1
-- Drop support for python 3.7
-
-## 0.8.2
-- Based on mkdocstrings-python >=0.8.2,<0.9
-- Support `(p)` specifier for enclosing package
-
-## 0.7.1 - Initial release.
-
-* support for relative cross-references
+First public release
 

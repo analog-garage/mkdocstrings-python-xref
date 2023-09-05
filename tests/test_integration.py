@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""Integration test for garpy_python handler"""
+"""Integration test for python_xref handler"""
 
 import os
 import re

@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-"""Unit test for mkdocstrings_handlers.garpy_python.handler module"""
+"""Unit test for mkdocstrings_handlers.python_xref.handler module"""
 
 from __future__ import annotations
 
@@ -26,8 +26,7 @@ import pytest
 from griffe.dataclasses import Docstring, Object, Module
 from mkdocstrings.handlers.base import CollectionError
 from mkdocstrings_handlers.python.handler import PythonHandler
-
-from mkdocstrings_handlers.garpy_python.handler import GarpyPythonHandler
+from mkdocstrings_handlers.python_xref.handler import PythonRelXRefHandler
 
 def test_handler(tmpdir: PathLike,
                  monkeypatch: pytest.MonkeyPatch,
@@ -46,17 +45,17 @@ def test_handler(tmpdir: PathLike,
     # Test construction
     #
 
-    handler = GarpyPythonHandler(
+    handler = PythonRelXRefHandler(
         'material',
         config_file_path = config_file,
         custom_templates = 'custom_templates',
         paths = ['path1', 'path2']
     )
-    assert handler.handler_name == 'garpy_python'
+    assert handler.handler_name == 'python_xref'
 
     # NOTE: these could break if PythonHandler changes
     # pylint: disable=protected-access
-    assert handler.handler_name == 'garpy_python'
+    assert handler.handler_name == 'python_xref'
     assert handler._config_file_path == config_file
     assert os.path.join(tmpdir, 'path1') in handler._paths
     assert os.path.join(tmpdir, 'path2') in handler._paths

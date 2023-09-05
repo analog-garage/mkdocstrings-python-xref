@@ -1,11 +1,11 @@
-site_name: "garpy.mkdocstrings"
-site_description: "A an extened Python handler for mkdocstrings."
-repo_url: https://gitlab.analog.com/boston-garage/garpy.mkdocstrings
-site_url: https://gitlab.analog.com/boston-garage/garpy.mkdocstrings
-repo_name: GitLab
+site_name: "mkdocstrings-python-xref"
+site_description: "A an extended Python handler for mkdocstrings."
+repo_url: https://github.com/analog-garage/mkdocstrings-python-xref
+site_url: https://github.com/analog-garage/mkdocstrings-python-xref
+repo_name: GitHub
 site_dir: site
 site_author: Christopher Barber
-copyright: Copyright &copy; 2022  Analog Devices, Inc.
+copyright: Copyright &copy; 2022-2023  Analog Devices, Inc.
 
 watch:
   - src/mkdocstrings_handlers
@@ -24,7 +24,8 @@ nav:
 
 theme:
   name: material
-  logo: garpy.mkdocstrings.svg
+  logo: logo.svg
+  favicon: logo.svg
   features:
   - navigation.tabs
   - navigation.tabs.sticky
@@ -53,18 +54,12 @@ markdown_extensions:
 - pymdownx.tabbed:
     alternate_style: true
 
-extra:
-  social:
-    - icon: fontawesome/brands/slack
-      link: https://cto-adi.slack.com/archives/C8ZQJ9DA4
-      name: "#ag-software in the CTO ADI workspace"
-
 plugins:
 - search
 - mkdocstrings:
-    default_handler: garpy_python
+    default_handler: python_xref
     handlers:
-      garpy_python:
+      python_xref:
         paths: [src]
         import:
         - https://docs.python.org/3/objects.inv

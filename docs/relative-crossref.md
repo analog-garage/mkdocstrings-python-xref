@@ -5,7 +5,7 @@ fully qualified or is empty, in which case it is taken from the title.
 If you work with long package and class names or with namespace packages, this can result in a lot
 of extra typing and harder to read doc-strings.
 
-If you enable the `relative_crossrefs` option in the `garpy_python` handler options
+If you enable the `relative_crossrefs` option in the `python_xref` handler options
 in your mkdocs.yml file ([see configuration](config.md) for an example), then the handler 
 will support more compact relative syntax:
 

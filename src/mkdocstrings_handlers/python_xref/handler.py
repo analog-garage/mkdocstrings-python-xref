@@ -28,12 +28,12 @@ from mkdocstrings_handlers.python.handler import PythonHandler
 from .crossref import substitute_relative_crossrefs
 
 __all__ = [
-    'GarpyPythonHandler'
+    'PythonRelXRefHandler'
 ]
 
 logger = get_logger(__name__)
 
-class GarpyPythonHandler(PythonHandler):
+class PythonRelXRefHandler(PythonHandler):
     """Extended version of mkdocstrings Python handler
     """
 

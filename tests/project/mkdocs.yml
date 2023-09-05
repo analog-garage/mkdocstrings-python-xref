@@ -46,9 +46,9 @@ markdown_extensions:
 plugins:
 - search
 - mkdocstrings:
-    default_handler: garpy_python
+    default_handler: python_xref
     handlers:
-      garpy_python:
+      python_xref:
         paths: [src]
         options:
           docstring_style: google

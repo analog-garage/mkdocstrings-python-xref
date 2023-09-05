@@ -1,5 +1,4 @@
 CONDA := conda
-GARCONDA := garconda --min-version 0.3.4
 ECHO := echo
 RM := rm
 RMDIR := $(RM) -rf
@@ -24,12 +23,9 @@ COVERAGE_HTML := $(abspath htmlcov)
 -include custom.mk
 
 # General env/build/deploy args
-SRC := src
-
-PACKAGE := garpy.mkdocstrings
-PACKAGE_VERSION_PATH := $(SRC)/mkdocstrings_handlers/garpy_python/VERSION
-PACKAGE_COMMAND := $(CAT) $(PACKAGE_VERSION_PATH)
-PACKAGE_VER := $(shell $(PACKAGE_COMMAND))
+PACKAGE := mkdocstrings-python-xref
+PACKAGE_VERSION_PATH := src/mkdocstrings_handlers/python_xref/VERSION
+VERSION := $(strip $(file < $(PACKAGE_VERSION_PATH)))
 
 SRC_FILES := $(wildcard src/mkdocstrings_handlers/garpy_python/*.py) $(PYTHON_VERSION_PATH)
 
@@ -45,18 +41,7 @@ CONDA_UPLOAD_CHANNEL := garage-conda-local$(UPLOAD_TEST)
 PYPI_UPLOAD_CHANNEL := adi-pypi-local$(UPLOAD_TEST)
 
 # Env names
-DEV_ENV := garpy.mkdocstrings
-
-# Creation args
-CREATE_DEV_ARGS := --file runtime-env.yml --file test-env.yml --file doc-env.yml
-GARCONDA_CREATE_ARGS := $(CREATE_DEV_ARGS)
-DEV_CREATE := $(GARCONDA) create-dev -n $(DEV_ENV) $(GARCONDA_CREATE_ARGS) --python-version 3.8
-CI_CREATE := $(DEV_CREATE)
-
-# Verify upload args
-VERIFY_UPLOAD := $(GARCONDA) verify-upload --expect-version $(PACKAGE_VER) --request-version $(PACKAGE_VER) $(PACKAGE)
-VERIFY_UPLOAD_CONDA := $(VERIFY_UPLOAD) --conda-channel $(CONDA_UPLOAD_CHANNEL)
-VERIFY_UPLOAD_WHEEL := $(VERIFY_UPLOAD) --pypi-channel $(PYPI_UPLOAD_CHANNEL)
+DEV_ENV := mkxref-dev
 
 # Whether to run targets in current env or explicitly in $(DEV_ENV)
 CURR_ENV_BASENAME := $(shell basename $(CONDA_PREFIX))
@@ -104,9 +89,9 @@ help:
 	@$(ECHO) "mypy            - Run mypy in '$(DEV_ENV)' environment."
 	@$(ECHO)
 	@$(ECHO) "$(SECTION_COLOR)--- build ---$(COLORLESS)"
-	@$(ECHO) "build           - Build wheel and conda package."
+	@$(ECHO) "build           - Build wheel"
 	@$(ECHO) "build-wheel     - Build wheel."
-	@$(ECHO) "build-conda     - Build conda package."
+	@$(ECHO) "build-conda     - Build conda package (requires whl2conda)"
 	@$(ECHO)
 	@$(ECHO) "$(SECTION_COLOR)--- upload ---$(COLORLESS)"
 	@$(ECHO) "upload          - Upload conda package and wheel to artifactory"
@@ -131,18 +116,22 @@ help:
 	@$(ECHO) "$(TOP_COLOR)====================$(COLORLESS)"
 	@$(ECHO)
 
+dev-install:
+	$(CONDA_RUN) pip install -e . --no-deps --no-build-isolation
+
 create-dev:
-	$(DEV_CREATE)
+	$(CONDA) env create -f environment.yml
+	$(MAKE) dev-install
 
 createdev: create-dev
 
 update-dev:
-	$(DEV_CREATE) --update
+	$(CONDA) env update -f environment.yml
+	$(MAKE) dev-install
 
 updatedev: update-dev
 
-create-ci-env:
-	$(CI_CREATE)
+create-ci-env: create-dev
 
 clean-dev:
 	-$(CONDA) env remove -n $(DEV_ENV)
@@ -151,18 +140,6 @@ pytest:
 	$(CONDA_RUN) pytest -sv -ra $(PYTEST_ARGS) tests
 
 test: lint pytest
-
-# We generate the tox dependency files from the official versions.
-tox-env.yml: runtime-env.yml test-env.yml
-	$(GARCONDA) env merge --out $@ $^
-
-tox-requirements.txt: runtime-env.yml test-env.yml
-	$(GARCONDA) env merge --for-pip --out $@ $^
-
-tox-dependencies: tox-env.yml tox-requirements.txt
-
-tox: tox-dependencies
-	$(CONDA_RUN) tox $(TOX_ARGS)
 
 test-all:  test tox
 
@@ -183,35 +160,20 @@ mypy:
 
 lint: pylint mypy
 
-build-wheel:
+WHEEL_FILE := dist/$(subst -,_,$(PACKAGE))-$(VERSION)-py3-none-any.whl
+CONDA_FILE := dist/$(PACKAGE)-$(VERSION)-py_0.conda
+
+$(WHEEL_FILE):
 	$(CONDA_RUN) pip wheel . --no-deps --no-build-isolation -w dist
 
-conda-meta-data.json: runtime-env.yml pyproject.toml
-	$(CONDA_RUN) hatchling-garconda metadata --overwrite --out $@
+build-wheel: $(WHEEL_FILE)
 
-build-conda: conda-meta-data.json
-	$(GARCONDA) build $(abspath .)
+$(CONDA_FILE): $(WHEEL_FILE)
+	$(CONDA_RUN) whl2conda build $(WHEEL_FILE)
 
-build-conda-no-test: conda-meta-data.json
-	$(GARCONDA) build $(abspath .) --no-test
+build-conda: $(CONDA_FILE)
 
-build: build-wheel build-conda
-
-upload-wheel:
-	$(GARCONDA) upload-pypi -u $(USERNAME) dist/* -c $(PYPI_UPLOAD_CHANNEL)
-
-upload-conda:
-	$(GARCONDA) upload '$(PACKAGE)-$(PACKAGE_VER)-*' -u $(USERNAME) -y -c $(CONDA_UPLOAD_CHANNEL) $(UPLOAD_OVERWRITE)
-
-upload: upload-wheel upload-conda
-
-verify-upload-wheel:
-	$(CONDA_RUN) $(VERIFY_UPLOAD_WHEEL)
-
-verify-upload-conda:
-	$(CONDA_RUN) $(VERIFY_UPLOAD_CONDA)
-
-verify-upload: verify-upload-wheel verify-upload-conda
+build: build-wheel
 
 site/index.html: $(MKDOC_FILES) $(SRC_FILES)
 	$(CONDA_RUN) mkdocs build -f $(MKDOC_CONFIG)

@@ -1,5 +1,5 @@
 Configuration is the same as with [mkdocstrings-python][] except
-that the handler name should be `garpy_python` instead of `python`. Because
+that the handler name should be `python_xref` instead of `python`. Because
 this handler extends the standard [mkdocstrings-python][] handler, the same options are
 available.
 
@@ -14,9 +14,9 @@ Additional options are added by this extension. Currently, there is only one:
 plugins:
 - search
 - mkdocstrings:
-    default_handler: garpy_python
+    default_handler: python_xref
     handlers:
-      garpy_python:
+      python_xref:
         import:
         - https://docs.python.org/3/objects.inv
         options:

@@ -25,8 +25,8 @@ import pytest
 from griffe.dataclasses import Class, Docstring, Function, Module, Object
 
 # noinspection PyProtectedMember
-import mkdocstrings_handlers.garpy_python.crossref
-from mkdocstrings_handlers.garpy_python.crossref import (
+import mkdocstrings_handlers.python_xref.crossref
+from mkdocstrings_handlers.python_xref.crossref import (
     _RE_REL_CROSSREF,
     _RelativeCrossrefProcessor,
     substitute_relative_crossrefs,
@@ -46,7 +46,7 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
     meth1 = Function(name="meth1", parent=cls1)
     cls1.members.update(meth1=meth1)
 
-    monkeypatch.setattr(mkdocstrings_handlers.garpy_python.crossref, '_supports_linenums', True)
+    monkeypatch.setattr(mkdocstrings_handlers.python_xref.crossref, '_supports_linenums', True)
 
     def assert_sub(parent: Object, title: str, ref: str,
                    expected: str = "",
