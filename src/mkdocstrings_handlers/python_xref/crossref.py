@@ -200,10 +200,9 @@ class _RelativeCrossrefProcessor:
         if ref_match.group("current"):
             if obj.is_function:
                 self._error(
-                    f"Deprecated use of '.' in function {obj.canonical_path} changed to '..'",
+                    f"Cannot use '.' in function {obj.canonical_path}",
                     just_warn=True
                 )
-                rel_obj = obj.parent
             else:
                 rel_obj = obj
         return rel_obj
