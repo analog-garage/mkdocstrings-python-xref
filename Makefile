@@ -129,6 +129,8 @@ test-all:  test tox
 coverage-test:
 	@$(MAKE) -B .coverage
 
+coverage: coverage-test
+
 coverage-show:
 	@$(CONDA_RUN) python -m webbrowser file://$(COVERAGE_HTML)/index.html
 
