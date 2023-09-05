@@ -8,6 +8,4 @@ dependencies:
   - mkdocs >=1.3.0
   - pymdown-extensions
   - mkdocs-material >=8.2
-  - pip
-  - pip:
-      - linkchecker
+  - linkchecker >=10.2.1
