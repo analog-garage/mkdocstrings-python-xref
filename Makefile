@@ -29,17 +29,6 @@ VERSION := $(strip $(file < $(PACKAGE_VERSION_PATH)))
 
 SRC_FILES := $(wildcard src/mkdocstrings_handlers/garpy_python/*.py) $(PYTHON_VERSION_PATH)
 
-USE_TEST_CHANNEL :=
-ifeq ($(USE_TEST_CHANNEL),)
-	UPLOAD_TEST :=
-	UPLOAD_OVERWRITE :=
-else
-	UPLOAD_TEST :=-test
-	UPLOAD_OVERWRITE :=--overwrite
-endif
-CONDA_UPLOAD_CHANNEL := garage-conda-local$(UPLOAD_TEST)
-PYPI_UPLOAD_CHANNEL := adi-pypi-local$(UPLOAD_TEST)
-
 # Env names
 DEV_ENV := mkxref-dev
 
@@ -73,13 +62,10 @@ help:
 	@$(ECHO) "create-dev      - Create conda development environment named '$(DEV_ENV)'."
 	@$(ECHO) "update-dev      - Update conda development environment '$(DEV_ENV)'."
 	@$(ECHO) "clean-dev       - Remove $(DEV_ENV) conda environment"
-	@$(ECHO) "create-ci-env   - Create CI conda environment named $(DEV_ENV)."
 	@$(ECHO)
 	@$(ECHO) "$(SECTION_COLOR)--- test ---$(COLORLESS)"
 	@$(ECHO) "pytest          - Run pytest in '$(DEV_ENV)' environment."
 	@$(ECHO) "test            - Run tests and linting in '$(DEV_ENV)' environment."
-#	@$(ECHO) "test-all        - Run all tests against all supported environments"
-#	@$(ECHO) "                  and linting {% if cookiecutter.pre_commit == "yes" -%} and pre-commit {%- endif %} in '$(DEV_ENV)' environment."
 	@$(ECHO) "coverage-test   - Runs pytest instrumented for coverage and generates html report"
 	@$(ECHO) "coverage-show   - Open html coverage report in a web browser."
 	@$(ECHO)
@@ -94,14 +80,8 @@ help:
 	@$(ECHO) "build-conda     - Build conda package (requires whl2conda)"
 	@$(ECHO)
 	@$(ECHO) "$(SECTION_COLOR)--- upload ---$(COLORLESS)"
-	@$(ECHO) "upload          - Upload conda package and wheel to artifactory"
-	@$(ECHO) "                  Run 'make upload USE_TEST_CHANNEL=1' to upload to test channel."
-	@$(ECHO) "upload-wheel    - Upload wheel to artifactory channel $(PYPI_UPLOAD_CHANNEL)"
-	@$(ECHO) "upload-conda    - Upload conda package to artifactory channel $(CONDA_UPLOAD_CHANNEL)"
-	@$(ECHO) "verify-upload   - Install uploaded package into test environment and verify it can be imported."
-	@$(ECHO) "                  Run 'verify-upload USE_TEST_CHANNEL=1' to verify upload from test channel."
-	@$(ECHO) "verify-upload-wheel - Verify upload of only wheel."
-	@$(ECHO) "verify-upload-conda - Verify upload of only conda package."
+	@$(ECHO) "upload          - Upload wheel to pypi (requires authorization)"
+	@$(ECHO) "check-upload    - Verify file for upload"
 	@$(ECHO)
 	@$(ECHO) "$(SECTION_COLOR)--- documentation ---$(COLORLESS)"
 	@$(ECHO) "doc             - Build HTML documentation in site/ directory."
@@ -193,6 +173,13 @@ showdoc: site/index.html
 	$(CONDA_RUN) mkdocs serve -f $(MKDOC_CONFIG)
 
 showdocs: showdoc
+
+check-upload:
+	$(CONDA_RUN) twine check $(WHEEL_FILE)
+
+upload: check-upload
+	# NOTE: --skip-existing doesn't seem to actually work
+	$(CONDA_RUN) twine upload --skip-existing $(WHEEL_FILE)
 
 clean-build:
 	-@$(RMDIR) build

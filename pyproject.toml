@@ -5,6 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "mkdocstrings-python-xref"
 description = "Enhanced mkdocstrings python handler"
+readme = "README.md"
 authors = [
     {name = "Christopher Barber", email="Christopher.Barber@analog.com" },
 ]
