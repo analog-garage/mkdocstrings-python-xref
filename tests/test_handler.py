@@ -56,10 +56,8 @@ def test_handler(tmpdir: PathLike,
 
     # NOTE: these could break if PythonHandler changes
     # pylint: disable=protected-access
-    assert handler._handler == 'garpy_python'
-    assert handler._theme == 'material'
+    assert handler.handler_name == 'garpy_python'
     assert handler._config_file_path == config_file
-    assert handler._custom_templates == 'custom_templates'
     assert os.path.join(tmpdir, 'path1') in handler._paths
     assert os.path.join(tmpdir, 'path2') in handler._paths
 

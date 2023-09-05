@@ -49,7 +49,8 @@ class GarpyPythonHandler(PythonHandler):
                  custom_templates: Optional[str] = None,
                  config_file_path: Optional[str] = None,
                  paths: Optional[List[str]] = None,
-                 **config: Any,
+                 locale: str = "en",
+                 **_config: Any,
                  ):
         super().__init__(
             handler = self.handler_name,
@@ -57,7 +58,7 @@ class GarpyPythonHandler(PythonHandler):
             custom_templates = custom_templates,
             config_file_path = config_file_path,
             paths = paths,
-            **config
+            locale=locale,
         )
 
     def render(self, data: Object, config: Mapping[str,Any]) -> str:
@@ -68,7 +69,7 @@ class GarpyPythonHandler(PythonHandler):
 
         return super().render(data, config)
 
-    def get_templates_dir(self, handler: str) -> Path:
+    def get_templates_dir(self, handler: Optional[str] = None) -> Path:
         """See [render][.barf]"""
         if handler == self.handler_name:
             handler = 'python'

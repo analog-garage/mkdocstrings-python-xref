@@ -1,5 +1,9 @@
 # garpy.mkdocstring changes
 
+## 1.5.2.1
+
+- Fix issue with 1.5.2
+
 ## 1.5.2
 
 - Use mkdocstrings-python >=1.5.2,<2.0
