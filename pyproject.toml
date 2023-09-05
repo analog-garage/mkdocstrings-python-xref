@@ -10,6 +10,9 @@ authors = [
     {name = "Christopher Barber", email="Christopher.Barber@analog.com" },
 ]
 classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Documentation",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -20,6 +23,9 @@ requires-python = ">=3.8"
 dependencies = [
     "mkdocstrings-python >=1.6.2,<2.0"
 ]
+
+[project.urls]
+Repository = "https://github.com/analog-garage/mkdocstrings-python-xref"
 
 [tool.hatch.version]
 path = "src/mkdocstrings_handlers/python_xref/VERSION"
