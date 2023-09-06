@@ -1,12 +1,108 @@
-This package provides an extended version of the [standard python handler][mkdocstrings_python]
-for [mkdocstrings] that provides the following additional features:
+## Relative cross-references
 
-* [relative cross-references](relative-crossref.md) allows you to write
-    cross-reference paths compactly relative to the item it documents.
+By default, [mkdocstrings] only supports cross-references where the path is
+fully qualified or is empty, in which case it is taken from the title. 
+If you work with long package and class names or with namespace packages, this can result in a lot
+of extra typing and harder to read doc-strings.
 
-Some of these features may eventually find their way into the official python handler.
+If you enable the `relative_crossrefs` option in the `python_xref` handler options
+in your mkdocs.yml file ([see configuration](config.md) for an example), then the handler 
+will support more compact relative syntax:
+
+=== "Absolute"
+
+    ```python
+    class MyClass:
+        def this_method(self):
+            """
+            See [other_method][mypkg.mymod.MyClass.other_method] 
+            from [MyClass][mypkg.mymod.Myclass]
+            """
+    ```
+
+=== "Relative"
+
+    ```python
+    class MyClass:
+        def this_method(self):
+            """
+            See [other_method][..] from [MyClass][(c)]
+            """
+    ```
+
+The relative path specifier has the following form:
+
+* If the path ends in `.` then the title text will be appended to the path
+  (ignoring bold, italic or code markup).
+
+* If the path begins with a single `.` then it will be expanded relative to the path
+    of the doc-string in which it occurs. 
+
+* If the path begins with `(c)`, that will be replaced by the path of the
+    class that contains the doc-string
+
+* If the path begins with `(m)`, that will be replaced by the path of the
+    module that contains the doc-string
+
+* If the path begins with `(p)`, that will be replaced by the path of the
+    package that contains the doc-string. If there is only one module in the 
+    system it will be treated as a package.
+
+* If the path begins with one or more `^` characters, then will be replaced
+    by the path of the parent element. For example, when used in a doc-string
+    for a method, `^` would get replaced with the class and `^^` would get
+    replaced with the module.
+
+* Similarly, if the path begins with two or more `.` characters, then all but
+    the last `.` will be replaced by the parent element, and if nothing follows
+    the last `.`, the title text will be appended according to the first rule.
+   
+    *NOTE: When using either `^` or `..` we have found that going up more than one
+    or two levels makes cross-references difficult to read and should be avoided*
+   
+These are demonstrated here:
+
+=== "Relative"
+
+    ```python
+    class MyClass:
+        def this_method(self):
+            """
+            [MyClass][^]
+            Also [MyClass][(c)]
+            [`that_method`][^.]
+            Also [`that_method`][..]
+            [init method][(c).__init__]
+            [this module][(m)]
+            [this package][(p)]
+            [OtherClass][(m).]
+            [some_func][^^.] or [some_func][...]
+            """
+    ```
+
+=== "Absolute"
+
+    ```python
+    class MyClass:
+        def this_method(self):
+            """
+            [MyClass][mypkg.mymod.MyClass]
+            Also [MyClass][mypkg.mymod.MyClass]
+            [`that_method`][mypkg.mymod.MyClass.that_method]
+            Also [`that_method`][mypkg.mymod.MyClass.that_method]
+            [init method][mypkg.mymod.MyClass.__init__]
+            [this module][mypkg.mymod]
+            [this package][mypkg]
+            [OtherClass][mypkg.mymod.OtherClass]
+            [some_func][mypkg.mymod.some_func]
+            """
+    ```
+
+This has been [proposed as a feature in the standard python handler][relative-crossref-issue]
+but has not yet been accepted.
 
 [mkdocstrings]: https://mkdocstrings.github.io/
 [mkdocstrings_python]: https://mkdocstrings.github.io/python/
+[relative-crossref-issue]: https://github.com/mkdocstrings/python/issues/27
 
 
