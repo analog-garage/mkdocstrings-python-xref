@@ -26,6 +26,7 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/analog-garage/mkdocstrings-python-xref"
+Documentation = "https://analog-garage.github.io/mkdocstrings-python-xref/"
 
 [tool.hatch.version]
 path = "src/mkdocstrings_handlers/python_xref/VERSION"
