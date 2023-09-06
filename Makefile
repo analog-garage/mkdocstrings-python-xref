@@ -100,7 +100,7 @@ dev-install:
 	$(CONDA_RUN) pip install -e . --no-deps --no-build-isolation
 
 create-dev:
-	$(CONDA) env create -f environment.yml
+	$(CONDA) env create -f environment.yml --yes
 	$(MAKE) dev-install
 
 createdev: create-dev

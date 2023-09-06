@@ -201,7 +201,7 @@ class _RelativeCrossrefProcessor:
             if obj.is_function:
                 self._error(
                     f"Cannot use '.' in function {obj.canonical_path}",
-                    just_warn=True
+                    just_warn=False
                 )
             else:
                 rel_obj = obj

@@ -99,8 +99,8 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
 
     # Error cases
 
-    assert_sub(meth1, "foo", ".", "mod1.mod2.Class1.foo", warning="Deprecated use of '.'")
-    assert_sub(meth1, "foo", ".bar", "mod1.mod2.Class1.bar", warning="Deprecated use of '.'")
+    assert_sub(meth1, "foo", ".", ".", warning="Cannot use '.'")
+    assert_sub(meth1, "foo", ".bar", ".bar", warning="Cannot use '.'")
     assert_sub(meth1, "foo", ".bad+syntax", warning="Bad syntax")
     assert_sub(meth1, "bad id", "..", warning="not a qualified identifier")
     assert_sub(mod2, "foo", "(c)", warning="not in a class")

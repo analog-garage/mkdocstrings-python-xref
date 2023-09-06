@@ -23,7 +23,7 @@ class Bar(Foo):
 
     def bar(self) -> None:
         """This is in the [Bar][(c)] class.
-        Also see the [foo][.] method and the [func][(m).] function.
+        Also see the [foo][^.] method and the [func][(m).] function.
         """
 
     def foo(self) -> None:
