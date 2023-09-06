@@ -10,6 +10,36 @@ Python handler for [mkdocstrings] supporting relative cross-references.
 [![CI](https://github.com/analog-garage/mkdocstrings-python-xref/actions/workflows/main.yml/badge.svg)](https://github.com/analog-garage/mkdocstrings-python-xref/actions/workflows/main.yml)
 ![GitHub issues](https://img.shields.io/github/issues/analog-garage/mkdocstrings-python-xref)
 
+[mkdocstrings] is an awesome plugin for [MkDocs] that can generate Markdown API documentation
+from comments in code. The standard [python handler][mkdocstrings-python] allows you to
+create cross-reference links using the syntax `[<title>][<path>]` where the path must
+either be the fully qualified name of the referent or is empty, in which case the path
+is taken from the title. This works well when the names are short, but can be burdensome
+in larger codebases with deeply nested package structures.
 
+This package extends [mkdocstrings-python] to support a relative cross-reference syntax,
+that allows you to write doc-strings with cross-references like:
+
+```python
+class MyClass:
+    def this_method(self):
+        """
+        See [other_method][..] from [MyClass][(c)]
+        """
+```
+rather than:
+
+```python
+class MyClass:
+    def this_method(self):
+        """
+        See [other_method][mypkg.mymod.MyClass.other_method] 
+        from [MyClass][mypkg.mymod.Myclass]
+        """
+```
+
+For further details, please see the [Documentation](https://analog-garage.github.io/mkdocstrings-python-xref/)
+
+[MkDocs]: https://mkdocs.readthedocs.io/
 [mkdocstrings]: https://github.com/mkdocstrings/mkdocstrings
-[mkdocstrings_python]: https://github.com/mkdocstrings/python
+[mkdocstrings-python]: https://github.com/mkdocstrings/python

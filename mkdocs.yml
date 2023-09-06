@@ -11,9 +11,7 @@ watch:
   - src/mkdocstrings_handlers
 
 nav:
-- User Guide:
-    - Overview: index.md
-    - Relative cross-references: relative-crossref.md
+- User Guide: relative-crossref.md
 - Setup:
     - Installation: install.md
     - Configuration: config.md

@@ -15,7 +15,7 @@ will support more compact relative syntax:
     class MyClass:
         def this_method(self):
             """
-            See [other_function][mypkg.mymod.MyClass.other_function] 
+            See [other_method][mypkg.mymod.MyClass.other_method] 
             from [MyClass][mypkg.mymod.Myclass]
             """
     ```
@@ -26,7 +26,7 @@ will support more compact relative syntax:
     class MyClass:
         def this_method(self):
             """
-            See [other_function][.] from [MyClass][^]
+            See [other_method][..] from [MyClass][(c)]
             """
     ```
 
@@ -38,11 +38,6 @@ The relative path specifier has the following form:
 * If the path begins with a single `.` then it will be expanded relative to the path
     of the doc-string in which it occurs. 
 
-    As a deprecated special case, if the current
-    doc-string is for a function or method, then `.` will instead be
-    expanded relative to the function's parent (i.e. the same as `^.`).
-    This will turn into an error in a future version.
-
 * If the path begins with `(c)`, that will be replaced by the path of the
     class that contains the doc-string
 
@@ -53,10 +48,17 @@ The relative path specifier has the following form:
     package that contains the doc-string. If there is only one module in the 
     system it will be treated as a package.
 
-* If the path begins with one or more `^` characters, then that will go
-   up one level in the path of the current doc string for each `^`. Additionally,
-   if the path begins with two or more `.` characters, then that will go
-   up on level for each `.` after the first.
+* If the path begins with one or more `^` characters, then will be replaced
+    by the path of the parent element. For example, when used in a doc-string
+    for a method, `^` would get replaced with the class and `^^` would get
+    replaced with the module.
+
+* Similarly, if the path begins with two or more `.` characters, then all but
+    the last `.` will be replaced by the parent element, and if nothing follows
+    the last `.`, the title text will be appended according to the first rule.
+   
+    *NOTE: When using either `^` or `..` we have found that going up more than one
+    or two levels makes cross-references difficult to read and should be avoided*
    
 These are demonstrated here:
 
@@ -66,7 +68,10 @@ These are demonstrated here:
     class MyClass:
         def this_method(self):
             """
-            [`that_method`][.]
+            [MyClass][^]
+            Also [MyClass][(c)]
+            [`that_method`][^.]
+            Also [`that_method`][..]
             [init method][(c).__init__]
             [this module][(m)]
             [this package][(p)]
@@ -81,7 +86,10 @@ These are demonstrated here:
     class MyClass:
         def this_method(self):
             """
+            [MyClass][mypkg.mymod.MyClass]
+            Also [MyClass][mypkg.mymod.MyClass]
             [`that_method`][mypkg.mymod.MyClass.that_method]
+            Also [`that_method`][mypkg.mymod.MyClass.that_method]
             [init method][mypkg.mymod.MyClass.__init__]
             [this module][mypkg.mymod]
             [this package][mypkg]
