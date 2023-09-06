@@ -200,6 +200,10 @@ upload: check-upload
 	# NOTE: --skip-existing doesn't seem to actually work
 	$(CONDA_RUN) twine upload --skip-existing $(WHEEL_FILE)
 
+anaconda-upload: $(CONDA_FILE)
+	# you will need to log in first
+	anaconda upload --user garpy $(CONDA_FILE)
+
 clean-build:
 	-@$(RMDIR) build
 	-@$(RMDIR) dist
