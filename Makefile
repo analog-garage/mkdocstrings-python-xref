@@ -176,6 +176,23 @@ showdoc: site/index.html
 
 showdocs: showdoc
 
+doc-deploy:
+	$(CONDA_RUN) mike deploy -F $(MKDOC_CONFIG) -u $(VERSION) latest
+	$(CONDA_RUN) mike set-default -F $(MKDOC_CONFIG) latest
+
+mike-deploy: doc-deploy
+mike-build: doc-deploy
+
+doc-push:
+	git push origin gh-pages
+
+doc-upload: doc-push
+
+doc-serve-all:
+	$(CONDA_RUN) mike serve -F $(MKDOC_CONFIG)
+
+mike-serve: doc-serve-all
+
 check-upload:
 	$(CONDA_RUN) twine check $(WHEEL_FILE)
 

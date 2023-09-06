@@ -46,6 +46,12 @@ theme:
       icon: material/weather-night
       name: Switch to light mode
 
+extra:
+  generator: false
+  version:
+    provider: mike
+    default: stable
+
 markdown_extensions:
 - admonition
 - pymdownx.snippets:
@@ -56,6 +62,12 @@ markdown_extensions:
 
 plugins:
 - search
+- mike:
+    # These fields are all optional; the defaults are as below...
+    canonical_version: stable
+    version_selector: true
+    css_dir: css
+    javascript_dir: js
 - mkdocstrings:
     default_handler: python_xref
     handlers:

@@ -17,8 +17,8 @@ dependencies:
   - mkdocs-material >=8.2
   - beautifulsoup4 >=4.12
   # documentation
-  - black
-  - mkdocs >=1.3.0
-  - pymdown-extensions
-  - mkdocs-material >=8.2
+  - black >=23.7
+  - mike >=1.1,<2.0
+  - mkdocs >=1.5.0,<2.0
+  - mkdocs-material >=9.1
   - linkchecker >=10.2.1
