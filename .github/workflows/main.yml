@@ -9,12 +9,13 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.8", "3.10", "3.11"]
+        python-version: ["3.8", "3.10", "3.12"]
     steps:
     - uses: actions/checkout@v3
     - uses: goanpeca/setup-miniconda@v2.2.0
       with:
-        miniforge-variant: Mambaforge-pypy3
+        miniforge-variant: latest
+        conda-version: ">=23.7.4"
         conda-build-version: ">=3.26"
         environment-file: environment.yml
         activate-environment: mkxref-dev
