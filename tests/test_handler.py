@@ -80,6 +80,7 @@ def test_handler(tmpdir: PathLike,
         assert data.docstring is not None
         return data.docstring.value
 
+    # Monkeypatch render/collect methods on parent class
     monkeypatch.setattr(PythonHandler, 'collect', fake_collect)
     monkeypatch.setattr(PythonHandler, 'render', fake_render)
 
@@ -95,9 +96,32 @@ def test_handler(tmpdir: PathLike,
 
     rendered = handler.render(obj, dict(relative_crossrefs=True))
     assert rendered == "[foo][mod.foo] [bar][bad.bar]"
-
     assert len(caplog.records) == 1
     _, level, msg = caplog.record_tuples[0]
     assert level == logging.WARNING
-    assert 'Cannot load reference' in msg
+    assert "Cannot load reference 'bad.bar'" in msg
+    caplog.clear()
 
+    rendered = handler.render(obj, dict(relative_crossrefs=True, check_crossrefs=False))
+    assert rendered == "[foo][mod.foo] [bar][bad.bar]"
+    assert len(caplog.records) == 0
+
+    rendered = handler.render(obj, dict(relative_crossrefs=True, check_crossrefs=False))
+    assert rendered == "[foo][mod.foo] [bar][bad.bar]"
+    assert len(caplog.records) == 0
+
+    docstring = "\n\n[foo][bad.foo]"
+    obj.docstring = Docstring(docstring, parent=obj)
+    rendered = handler.render(obj, dict(relative_crossrefs=True))
+    assert rendered == "[foo][bad.foo]"
+    assert len(caplog.records) == 1
+    _, level, msg = caplog.record_tuples[0]
+    assert level == logging.WARNING
+    assert "Cannot load reference 'bad.foo'" in msg
+    caplog.clear()
+
+    docstring = "[foo][?bad.foo] [bar][?bad.]"
+    obj.docstring = Docstring(docstring, parent=obj)
+    rendered = handler.render(obj, dict(relative_crossrefs=True, check_crossrefs=True))
+    assert rendered == "[foo][bad.foo] [bar][bad.bar]"
+    assert len(caplog.records) == 0

@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 """
-Implementation of GarpyPythonHandler
+Implementation of python_xref handler
 """
 
 from __future__ import annotations
@@ -35,6 +35,9 @@ logger = get_logger(__name__)
 
 class PythonRelXRefHandler(PythonHandler):
     """Extended version of mkdocstrings Python handler
+
+    * Converts relative cross-references into full references
+    * Checks cross-references early in order to produce errors with source location
     """
 
     handler_name: str = __name__.rsplit('.', 2)[1]
@@ -42,6 +45,7 @@ class PythonRelXRefHandler(PythonHandler):
     default_config = dict(
         PythonHandler.default_config,
         relative_crossrefs = False,
+        check_crossrefs = True,
     )
 
     def __init__(self,
@@ -65,9 +69,14 @@ class PythonRelXRefHandler(PythonHandler):
         final_config = ChainMap(config, self.default_config) # type: ignore[arg-type]
 
         if final_config["relative_crossrefs"]:
-            substitute_relative_crossrefs(data, checkref=self._check_ref)
+            checkref = self._check_ref if final_config["check_crossrefs"] else None
+            substitute_relative_crossrefs(data, checkref=checkref)
 
-        return super().render(data, config)
+        try:
+            return super().render(data, config)
+        except Exception:  # pragma: no cover
+            print(f"{data.path=}")
+            raise
 
     def get_templates_dir(self, handler: Optional[str] = None) -> Path:
         """See [render][.barf]"""

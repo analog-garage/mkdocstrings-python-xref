@@ -38,6 +38,17 @@ class MyClass:
         """
 ```
 
+Another benefit of this extension is that it will report source locations for bad references
+so that errors are easier to find and fix. For example:
+
+```bash
+$ mkdocs build
+INFO    -  Cleaning site directory
+INFO    -  Building documentation to directory: /home/jdoe/my-project/site
+WARNING -  mkdocstrings_handlers: file:///home/jdoe/my-project/src/myproj/bar.py:16:
+           Cannot load reference 'myproj.bar.bad'
+```
+
 For further details, please see the [Documentation](https://analog-garage.github.io/mkdocstrings-python-xref/)
 
 [MkDocs]: https://mkdocs.readthedocs.io/

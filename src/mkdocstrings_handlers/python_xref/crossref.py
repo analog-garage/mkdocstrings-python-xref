@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import re
 import sys
-from typing import Callable, List, Optional, Union, cast
+from typing import Callable, List, Optional, cast
 
 from griffe.dataclasses import Docstring, Object
 from mkdocstrings.loggers import get_logger
@@ -57,8 +57,10 @@ def _re_named(name: str, exp: str, optional: bool = False) -> str:
     optchar = "?" if optional else ""
     return f"(?P<{name}>{exp}){optchar}"
 
+_RE_CROSSREF = re.compile(r"\[([^\[\]]+?)\]\[([^\[\]]*?)\]")
+"""Regular expression that matches general cross-references."""
 
-_RE_REL_CROSSREF = re.compile(r"\[([^\[\]]+?)\]\[([\.^\(][^\]]*?|[^\]]*?\.)\]")
+_RE_REL_CROSSREF = re.compile(r"\[([^\[\]]+?)\]\[(\??(?:[\.^\(][^\]]*?|[^\]]*?\.))\]")
 """Regular expression that matches relative cross-reference expressions in doc-string.
 
 This will match a cross reference where the path expression either ends in '.'
@@ -98,13 +100,13 @@ _RE_ID = re.compile("[a-zA-Z_][a-zA-Z0-9_.]*")
 """Regular expression that matches a qualified python identifier."""
 
 
-def _always_ok(_ref:str) -> bool:
+def _always_ok(_ref: str) -> bool:
     return True
 
 
 class _RelativeCrossrefProcessor:
     """
-    A callable object that substitutes relative cross-reference expressions.
+    A callable object that can substitute relative cross-reference expressions.
 
     This is intended to be used as a substitution function by `re.sub`
     to process relative cross-references in a doc-string.
@@ -116,7 +118,7 @@ class _RelativeCrossrefProcessor:
     _cur_offset: int
     _cur_ref_parts: List[str]
     _ok: bool
-    _check_ref: Union[Callable[[str],bool],Callable[[str],bool]]
+    _check_ref: Callable[[str], bool]
 
     def __init__(self, doc: Docstring, checkref: Optional[Callable[[str], bool]] = None):
         self._doc = doc
@@ -128,27 +130,52 @@ class _RelativeCrossrefProcessor:
         self._ok = True
 
     def __call__(self, match: re.Match) -> str:
+        """
+        Process a cross-reference expression.
+
+        This should be called with a match from the _RE_CROSSREF expression
+        which matches expression of the form [<title>][<ref>].
+        Group 1 matches the <title> and 2 the <ref>.
+        """
         self._start_match(match)
 
         title = match[1]
         ref = match[2]
 
-        ref_match = _RE_REL.fullmatch(ref)
-        if ref_match is None:
-            self._error(f"Bad syntax in relative cross reference: '{ref}'")
-        else:
-            self._process_parent_specifier(ref_match)
-            self._process_relname(ref_match)
-            self._process_append_from_title(ref_match, title)
+        checkref = self._check_ref
+        if ref.startswith("?"):
+            # Turn off cross-ref check
+            ref = ref[1:]
+            checkref = _always_ok
 
-        if self._ok:
-            new_ref = '.'.join(self._cur_ref_parts)
-            logger.debug(
-                "cross-reference substitution\nin %s:\n[%s][%s] -> [...][%s]",
-                cast(Object,self._doc.parent).canonical_path, title, ref, new_ref
-            )
-            if not self._check_ref(new_ref):
-                self._error(f"Cannot load reference '{new_ref}'")
+        new_ref = ""
+
+        # TODO support special syntax to turn off checking
+
+        if not _RE_REL_CROSSREF.fullmatch(match.group(0)):
+            # Just a regular cross reference
+            new_ref = ref if ref else title
+        else:
+            ref_match = _RE_REL.fullmatch(ref)
+            if ref_match is None:
+                self._error(f"Bad syntax in relative cross reference: '{ref}'")
+            else:
+                self._process_parent_specifier(ref_match)
+                self._process_relname(ref_match)
+                self._process_append_from_title(ref_match, title)
+
+            if self._ok:
+                new_ref = '.'.join(self._cur_ref_parts)
+                logger.debug(
+                    "cross-reference substitution\nin %s:\n[%s][%s] -> [...][%s]",
+                    cast(Object, self._doc.parent).canonical_path, title, ref, new_ref
+                )
+
+        # builtin names get handled specially somehow, so don't check here
+        if new_ref not in __builtins__ and not checkref(new_ref):  # type: ignore[operator]
+            self._error(f"Cannot load reference '{new_ref}'")
+
+        if new_ref:
             result = f"[{title}][{new_ref}]"
         else:
             result = match.group(0)
@@ -265,7 +292,7 @@ class _RelativeCrossrefProcessor:
                     break
         return rel_obj
 
-    def _error(self, msg: str, just_warn:bool = False) -> None:
+    def _error(self, msg: str, just_warn: bool = False) -> None:
         """Logs a warning for a specific crossref in a docstring.
 
         This will include the filepath and line number if available.
@@ -281,8 +308,8 @@ class _RelativeCrossrefProcessor:
             # recognize that this is a navigable location it can highlight.
             prefix = f"file://{parent.filepath}:"
             line = doc.lineno
-            if line is not None: # pragma: no branch
-                if _supports_linenums: # pragma: no branch
+            if line is not None:  # pragma: no branch
+                if _supports_linenums:  # pragma: no branch
                     # Add line offset to match in docstring. This can still be
                     # short if the doc string has leading newlines.
                     line += doc.value.count("\n", 0, self._cur_offset)
@@ -296,7 +323,7 @@ class _RelativeCrossrefProcessor:
         self._ok = just_warn
 
 
-def substitute_relative_crossrefs(obj: Object, checkref: Optional[Callable[[str],bool]] = None) -> None:
+def substitute_relative_crossrefs(obj: Object, checkref: Optional[Callable[[str], bool]] = None) -> None:
     """Recursively expand relative cross-references in all docstrings in tree.
 
     Arguments:
@@ -307,9 +334,8 @@ def substitute_relative_crossrefs(obj: Object, checkref: Optional[Callable[[str]
     doc = obj.docstring
 
     if doc is not None:
-        doc.value = _RE_REL_CROSSREF.sub(_RelativeCrossrefProcessor(doc, checkref=checkref), doc.value)
+        doc.value = _RE_CROSSREF.sub(_RelativeCrossrefProcessor(doc, checkref=checkref), doc.value)
 
     for member in obj.members.values():
-        if isinstance(member, Object): # pragma: no branch
-            substitute_relative_crossrefs(member, checkref= checkref)
-
+        if isinstance(member, Object):  # pragma: no branch
+            substitute_relative_crossrefs(member, checkref=checkref)
