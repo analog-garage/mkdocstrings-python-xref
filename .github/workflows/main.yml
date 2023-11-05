@@ -14,13 +14,12 @@ jobs:
     - uses: actions/checkout@v3
     - uses: goanpeca/setup-miniconda@v2.2.0
       with:
-        miniforge-variant: latest
+        miniforge-version: latest
         conda-version: ">=23.7.4"
         conda-build-version: ">=3.26"
         environment-file: environment.yml
         activate-environment: mkxref-dev
         python-version: ${{ matrix.python-version }}
-        auto-update-conda: true
         condarc-file: github-condarc.yml
         auto-activate-base: true
         use-mamba: true
