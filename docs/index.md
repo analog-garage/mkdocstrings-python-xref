@@ -101,6 +101,27 @@ These are demonstrated here:
 This has been [proposed as a feature in the standard python handler][relative-crossref-issue]
 but has not yet been accepted.
 
+## Cross-reference checking
+
+If `relative_crossrefs` and `check_crossrefs` are both enabled (the latter is true by default),
+then all cross-reference expressions will be checked to ensure that they exist and failures
+will be reported with the source location. Otherwise, missing cross-references will be reported
+by mkdocstrings without the source location, in which case it is often difficult to locate the source
+of the error. Note that the errors generatoed by this feat[.gitignore](..%2F.gitignore)
+
+
+
+ure are in addition to the errors
+from mkdocstrings.
+
+The current implementation of this feature can produce false errors for definitions from the
+python standard library. You can disable the check on a case-by-case basis by prefixing the
+reference expression with a `?`, for example:
+
+```
+This function returns a [Path][?pathlib.] instance.
+```
+
 [mkdocstrings]: https://mkdocstrings.github.io/
 [mkdocstrings_python]: https://mkdocstrings.github.io/python/
 [relative-crossref-issue]: https://github.com/mkdocstrings/python/issues/27

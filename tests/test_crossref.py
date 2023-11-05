@@ -27,6 +27,7 @@ from griffe.dataclasses import Class, Docstring, Function, Module, Object
 # noinspection PyProtectedMember
 import mkdocstrings_handlers.python_xref.crossref
 from mkdocstrings_handlers.python_xref.crossref import (
+    _RE_CROSSREF,
     _RE_REL_CROSSREF,
     _RelativeCrossrefProcessor,
     substitute_relative_crossrefs,
@@ -50,7 +51,9 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
 
     def assert_sub(parent: Object, title: str, ref: str,
                    expected: str = "",
+                   *,
                    warning: str = "",
+                   relative: bool = True,
                    checkref: Optional[Callable[[str],bool]] = None
                    ) -> None:
         """Tests a relative crossref substitution
@@ -61,6 +64,7 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
             ref: the reference path section of the cross-reference expression
             expected: the expected new value for the cross-reference
             warning: if specified, is regexp matching expected warning message
+            relative: true if relative reference is expected
             checkref: reference checking function
         """
         if not expected:
@@ -68,7 +72,12 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
         crossref = f"[{title}][{ref}]"
         doc = Docstring(parent=parent, value=f"subject\n\n{crossref}\n", lineno=42)
         match = _RE_REL_CROSSREF.search(doc.value)
-        assert match is not None
+        if relative:
+            assert match is not None
+        else:
+            assert match is None
+            match = _RE_CROSSREF.search(doc.value)
+            assert match is not None
         caplog.clear()
         actual = _RelativeCrossrefProcessor(doc, checkref=checkref)(match)
         if warning:
@@ -97,6 +106,16 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
     assert_sub(meth1, "Class1", "(p).mod2.", "mod1.mod2.Class1")
     assert_sub(mod1, "Class1", "(P).mod2.Class1", "mod1.mod2.Class1")
 
+    # disable checking
+
+    def assert_nocheck(val: str) -> bool:
+        pytest.fail(f"unexpected check of '{val}'")
+        return False
+
+    assert_sub(cls1, "foo", "?.", "mod1.mod2.Class1.foo", checkref=assert_nocheck)
+    assert_sub(cls1, "foo", "?mod1.mod2.Class1.foo", "mod1.mod2.Class1.foo",
+               checkref=assert_nocheck, relative=False)
+
     # Error cases
 
     assert_sub(meth1, "foo", ".", ".", warning="Cannot use '.'")
@@ -107,6 +126,10 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
     assert_sub(meth1, "foo", "^^^^", warning="too many levels")
     assert_sub(meth1, "foo", "..", "mod1.mod2.Class1.foo",
                warning = "Cannot load reference 'mod1.mod2.Class1.foo'",
+               checkref=lambda x: False)
+    assert_sub(meth1, "foo", "mod1.mod2.Class1.foo", "mod1.mod2.Class1.foo",
+               warning = "Cannot load reference 'mod1.mod2.Class1.foo'",
+               relative=False,
                checkref=lambda x: False)
 
 
