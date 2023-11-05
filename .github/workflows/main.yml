@@ -20,7 +20,6 @@ jobs:
         environment-file: environment.yml
         activate-environment: mkxref-dev
         python-version: ${{ matrix.python-version }}
-        auto-update-conda: true
         condarc-file: github-condarc.yml
         auto-activate-base: true
         use-mamba: true
