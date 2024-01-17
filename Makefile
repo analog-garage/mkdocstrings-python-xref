@@ -27,7 +27,7 @@ PACKAGE := mkdocstrings-python-xref
 PACKAGE_VERSION_PATH := src/mkdocstrings_handlers/python_xref/VERSION
 VERSION := $(strip $(file < $(PACKAGE_VERSION_PATH)))
 
-SRC_FILES := $(wildcard src/mkdocstrings_handlers/garpy_python/*.py) $(PYTHON_VERSION_PATH)
+SRC_FILES := $(wildcard src/mkdocstrings_handlers/python_xref/*.py) $(PYTHON_VERSION_PATH)
 
 # Env names
 DEV_ENV := mkxref-dev
@@ -145,17 +145,20 @@ lint: pylint mypy
 WHEEL_FILE := dist/$(subst -,_,$(PACKAGE))-$(VERSION)-py3-none-any.whl
 CONDA_FILE := dist/$(PACKAGE)-$(VERSION)-py_0.conda
 
+build-sdist:
+	$(CONDA_RUN) python -m build --sdist --no-isolation --outdir dist
+
 $(WHEEL_FILE):
 	$(CONDA_RUN) pip wheel . --no-deps --no-build-isolation -w dist
 
 build-wheel: $(WHEEL_FILE)
 
 $(CONDA_FILE): $(WHEEL_FILE)
-	$(CONDA_RUN) whl2conda build $(WHEEL_FILE)
+	$(CONDA_RUN) whl2conda convert $(WHEEL_FILE)
 
 build-conda: $(CONDA_FILE)
 
-build: build-wheel
+build: build-wheel build-sdist build-conda
 
 site/index.html: $(MKDOC_FILES) $(SRC_FILES)
 	$(CONDA_RUN) mkdocs build -f $(MKDOC_CONFIG)
@@ -193,16 +196,24 @@ doc-serve-all:
 
 mike-serve: doc-serve-all
 
-check-upload:
-	$(CONDA_RUN) twine check $(WHEEL_FILE)
+check-upload-wheel:
+	$(CONDA_RUN) twine check dist/*.whl
 
-upload: check-upload
+check-upload-sdist:
+	$(CONDA_RUN) twine check dist/*.tar.gz
+
+check-upload: check-upload-sdist check-upload-wheel
+
+upload-wheel: check-upload-wheel
 	# NOTE: --skip-existing doesn't seem to actually work
-	$(CONDA_RUN) twine upload --skip-existing $(WHEEL_FILE)
+	$(CONDA_RUN) twine upload --skip-existing $(lastword $(sort $(wildcard dist/*.whl)))
 
-anaconda-upload: $(CONDA_FILE)
-	# you will need to log in first
-	anaconda upload --user garpy $(CONDA_FILE)
+
+upload-sdist: check-upload-sdist
+	# NOTE: --skip-existing doesn't seem to actually work
+	$(CONDA_RUN) twine upload --skip-existing $(lastword $(sort $(wildcard dist/*.tar.gz)))
+
+upload: upload-sdist upload-wheel
 
 clean-build:
 	-@$(RMDIR) build
