@@ -5,20 +5,20 @@ channels:
 dependencies:
   # runtime
   - python >=3.8,<3.13
-  - mkdocstrings-python >=1.5.2,<2.0
+  - mkdocstrings-python >=1.6.2,<2.0
   # build
-  - hatchling >=1.18
+  - build >=0.7.0
+  - hatchling >=1.21
   # test
-  - coverage >=7.3.0
+  - coverage >=7.4.0
   - pytest >=7.4.0
   - pytest-cov >=4.1.0
-  - pylint >=2.17.5
-  - mypy >=1.5.1
-  - mkdocs-material >=8.2
+  - pylint >=3.0.3
+  - mypy >=1.8
   - beautifulsoup4 >=4.12
   # documentation
-  - black >=23.7
+  - black >=23.12
   - mike >=1.1,<2.0
-  - mkdocs >=1.5.0,<2.0
-  - mkdocs-material >=9.1
-  - linkchecker >=10.2.1
+  - mkdocs >=1.5.3,<2.0
+  - mkdocs-material >=9.5.4
+  - linkchecker >=10.4
