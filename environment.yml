@@ -5,7 +5,7 @@ channels:
 dependencies:
   # runtime
   - python >=3.8,<3.13
-  - mkdocstrings-python >=1.6.2,<1.10 # TODO: issue #18
+  - mkdocstrings-python >=1.6.2,<2.0
   # build
   - build >=0.7.0
   - hatchling >=1.21

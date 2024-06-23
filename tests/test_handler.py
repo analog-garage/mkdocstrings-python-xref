@@ -1,4 +1,4 @@
-#  Copyright (c) 2022.   Analog Devices Inc.
+#  Copyright (c) 2022-2024.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ def test_handler(tmpdir: PathLike,
     config_file = os.path.join(tmpdir, 'mkdocs.yml')
     os.mkdir(os.path.join(tmpdir, 'path1'))
     os.mkdir(os.path.join(tmpdir, 'path2'))
+    os.makedirs(os.path.join(tmpdir, 'custom_templates', 'python'))
 
     #
     # Test construction
