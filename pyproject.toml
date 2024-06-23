@@ -74,6 +74,66 @@ module = [
 ]
 ignore_missing_imports = true
 
+[tool.ruff.lint]
+# TODO add "I" (isort)
+# TODO add "RUF"
+# TODO add "ARG"
+# TODO add "SIM"
+# TODO add "S" (bandit)
+# TODO add "PT" (pytest style)
+# TODO add "CPY101"
+select = ["E", "F", "PL", "D", "R", "T10", "EXE"]
+ignore = [
+    "D105", # missing doc string for dunder methods
+    "D200", # one line doc string
+    "D202", # blank lines after function docstring
+    "D205", # doc on first line
+    "D212", # doc on first line
+    "D410", # blank line after doc section
+    "D411", # blank line before doc section
+    "D412", # no blank lines after section header
+    "D415", # doc title punctuation
+    "E501", # line too long
+    "PLC0105", # covariant metatype names
+    "PLR0913", # too-many-argument
+    "PLR2004", # magic value
+    "PT001", # allow @pytest.fixture without parens
+    "RET504", # unnecessary assignment to variable before return
+    "S101", # use of assert - do we care?
+    # TODO: fix the ones below
+    "D403", # capitalize first word of doc string
+    "D102", # undocumented public method
+    "D104", # missing docstring in public package
+    "D107", # __init__ docstring
+    "D417", # missing argument description
+]
+preview = true
+explicit-preview-rules = true # only preview explicitly selected rules (E.g. CPY001)
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore some issues in tests
+"tests/**" = [
+    "F401", # unused import (pytest fixture)
+    "F403", # wildcard import (for fixtures)
+    "F405", # defined from star imports (typicallky a pytest fixture)
+    "F811", # redefinition of unused (typically a pytest fixture)
+    "PLR0912", # too many branches
+    "PLR0915", # too many statements
+    "S", # bandit rules
+]
+
+[tool.ruff.lint.pylint]
+#max-locals = 30
+max-branches = 15
+#max-attributes = 30
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[too.ruff.format]
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
 [tool.pylint.main]
 jobs = 0
 # Minimum Python version to use for version dependent checks.

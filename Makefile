@@ -45,6 +45,7 @@ PYTEST_ARGS :=
 TOX_ARGS :=
 PYLINT_ARGS :=
 MYPY_ARGS :=
+RUFF_ARGS :=
 
 DOC_DIR := docs
 MKDOC_CONFIG := mkdocs.yml
@@ -71,7 +72,7 @@ help:
 	@$(ECHO)
 	@$(ECHO) "$(SECTION_COLOR)--- lint ---$(COLORLESS)"
 	@$(ECHO) "lint            - Run linting commands in '$(DEV_ENV)' environment."
-	@$(ECHO) "pylint          - Run pylint in '$(DEV_ENV)' environment."
+	@$(ECHO) "ruff            - Run ruff in '$(DEV_ENV)' environment."
 	@$(ECHO) "mypy            - Run mypy in '$(DEV_ENV)' environment."
 	@$(ECHO)
 	@$(ECHO) "$(SECTION_COLOR)--- build ---$(COLORLESS)"
@@ -137,10 +138,13 @@ coverage-show:
 pylint:
 	$(CONDA_RUN) pylint src/mkdocstrings_handlers tests $(PYLINT_ARGS)
 
+ruff:
+	$(CONDA_RUN) ruff check src/mkdocstrings_handlers tests $(RUFF_ARGS)
+
 mypy:
 	$(CONDA_RUN) mypy $(MYPY_ARGS)
 
-lint: pylint mypy
+lint: ruff mypy
 
 WHEEL_FILE := dist/$(subst -,_,$(PACKAGE))-$(VERSION)-py3-none-any.whl
 CONDA_FILE := dist/$(PACKAGE)-$(VERSION)-py_0.conda

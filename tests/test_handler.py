@@ -74,8 +74,7 @@ def test_handler(tmpdir: PathLike,
     def fake_collect(_self: PythonHandler, identifier: str, _config: dict) -> Any:
         if identifier.startswith('mod'):
             return Object(identifier)
-        else:
-            raise CollectionError(identifier)
+        raise CollectionError(identifier)
 
     def fake_render(_self: PythonHandler, data: Object, _config: dict) -> str:
         assert data.docstring is not None
