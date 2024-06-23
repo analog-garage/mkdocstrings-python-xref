@@ -25,7 +25,6 @@ import pytest
 from griffe.dataclasses import Class, Docstring, Function, Module, Object
 
 # noinspection PyProtectedMember
-import mkdocstrings_handlers.python_xref.crossref
 from mkdocstrings_handlers.python_xref.crossref import (
     _RE_CROSSREF,
     _RE_REL_CROSSREF,
@@ -33,7 +32,7 @@ from mkdocstrings_handlers.python_xref.crossref import (
     substitute_relative_crossrefs,
 )
 
-def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture) -> None:
     """Unit test for internal _RelativeCrossrefProcessor class.
 
     Arguments:

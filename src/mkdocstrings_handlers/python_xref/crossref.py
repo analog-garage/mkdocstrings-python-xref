@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 import re
-import sys
 from typing import Callable, List, Optional, cast
 
 from griffe.dataclasses import Docstring, Object

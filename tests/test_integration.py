@@ -16,7 +16,6 @@
 import os
 import re
 import subprocess as sp
-import sys
 from os import PathLike
 from pathlib import Path
 from typing import Dict, List, Tuple
