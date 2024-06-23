@@ -26,9 +26,9 @@ jobs:
     - name: Dev install package
       run: |
         conda run -n mkxref-dev pip install -e . --no-deps --no-build-isolation
-    - name: pylint
+    - name: ruff
       run: |
-        make pylint
+        make ruff
     - name: mypy
       if: success() || failure()
       run: |
