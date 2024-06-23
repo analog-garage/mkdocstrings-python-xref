@@ -1,4 +1,4 @@
-#  Copyright (c) 2022-2023.   Analog Devices Inc.
+#  Copyright (c) 2022-2024.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -27,9 +27,6 @@ __all__ = [
 ]
 
 logger = get_logger(__name__)
-
-# line numbers from griffe are not reliable before python 3.8; this may eventually be fixed...
-_supports_linenums = sys.version_info >= (3,8)
 
 def _re_or(*exps: str) -> str:
     """Construct an "or" regular expression from a sequence of regular expressions.
@@ -309,10 +306,9 @@ class _RelativeCrossrefProcessor:
             prefix = f"file://{parent.filepath}:"
             line = doc.lineno
             if line is not None:  # pragma: no branch
-                if _supports_linenums:  # pragma: no branch
-                    # Add line offset to match in docstring. This can still be
-                    # short if the doc string has leading newlines.
-                    line += doc.value.count("\n", 0, self._cur_offset)
+                # Add line offset to match in docstring. This can still be
+                # short if the doc string has leading newlines.
+                line += doc.value.count("\n", 0, self._cur_offset)
                 prefix += f"{line}:"
                 # It would be nice to add the column as well, but we cannot determine
                 # that without knowing how much the doc string was unindented.

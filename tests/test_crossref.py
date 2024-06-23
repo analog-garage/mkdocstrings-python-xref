@@ -1,4 +1,4 @@
-#  Copyright (c) 2022.   Analog Devices Inc.
+#  Copyright (c) 2022-2024.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -46,8 +46,6 @@ def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture, monkeypatch
     mod2.members.update(Class1=cls1)
     meth1 = Function(name="meth1", parent=cls1)
     cls1.members.update(meth1=meth1)
-
-    monkeypatch.setattr(mkdocstrings_handlers.python_xref.crossref, '_supports_linenums', True)
 
     def assert_sub(parent: Object, title: str, ref: str,
                    expected: str = "",

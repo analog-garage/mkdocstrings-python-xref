@@ -1,4 +1,4 @@
-#  Copyright (c) 2022.   Analog Devices Inc.
+#  Copyright (c) 2022-2024.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -79,11 +79,10 @@ def test_integration(tmpdir: PathLike) -> None:
     if os.path.sep == '/':
         assert m[1] == str(bar_src_file)
     assert m[3] == 'myproj.bar.bad'
-    if sys.version_info >= (3,8):
-        # Source location not accurate in python 3.7
-        bad_line = int(m[2])
-        bar_lines = bar_src_file.read_text().splitlines()
-        assert '[bad]' in bar_lines[bad_line - 1]
+    # Source location not accurate in python 3.7
+    bad_line = int(m[2])
+    bar_lines = bar_src_file.read_text().splitlines()
+    assert '[bad]' in bar_lines[bad_line - 1]
 
     bar_html = site_dir.joinpath('bar', 'index.html').read_text()
     bar_bs = bs4.BeautifulSoup(bar_html, 'html.parser')
