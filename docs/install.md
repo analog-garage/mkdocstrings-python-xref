@@ -6,8 +6,5 @@ pip install mkdocstrings-python-xref
 ### Using conda
 
 ```
-conda install -c garpy mkdocstrings-python-xref
+conda install -c conda-forge mkdocstrings-python-xref
 ```
-
-
-

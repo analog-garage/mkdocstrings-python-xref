@@ -25,7 +25,7 @@ keywords = [
 dynamic = ["version"]
 requires-python = ">=3.8"
 dependencies = [
-    "mkdocstrings-python >=1.6.2,<2.0"
+    "mkdocstrings-python >=1.6.2,<1.10" # TODO: issue #18
 ]
 
 [project.urls]
