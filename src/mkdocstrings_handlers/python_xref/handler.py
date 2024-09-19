@@ -21,7 +21,7 @@ from collections import ChainMap
 from pathlib import Path
 from typing import Any, List, Mapping, Optional
 
-from griffe.dataclasses import Object
+from griffe import Object
 from mkdocstrings.loggers import get_logger
 from mkdocstrings_handlers.python.handler import PythonHandler
 

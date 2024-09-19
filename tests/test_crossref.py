@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Callable, Optional
 
 import pytest
-from griffe.dataclasses import Class, Docstring, Function, Module, Object
+from griffe import Class, Docstring, Function, Module, Object
 
 # noinspection PyProtectedMember
 from mkdocstrings_handlers.python_xref.crossref import (

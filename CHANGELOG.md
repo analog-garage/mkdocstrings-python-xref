@@ -1,5 +1,9 @@
 # mkdocstring-python-xref changes
 
+## 1.6.2
+
+* Use griffe 1.0 or later
+
 ## 1.6.1
 
 * Available on conda-forge
