@@ -23,7 +23,7 @@ from typing import Any
 
 import pytest
 
-from griffe.dataclasses import Docstring, Object, Module
+from griffe import Docstring, Object, Module
 from mkdocstrings.handlers.base import CollectionError
 from mkdocstrings_handlers.python.handler import PythonHandler
 from mkdocstrings_handlers.python_xref.handler import PythonRelXRefHandler
