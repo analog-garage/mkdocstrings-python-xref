@@ -4,8 +4,8 @@ channels:
 
 dependencies:
   # runtime
-  - python >=3.8,<3.13
-  - mkdocstrings-python >=1.6.2,<2.0
+  - python >=3.9,<3.14
+  - mkdocstrings-python >=1.14,<2.0
   - griffe >=1.0
   # build
   - python-build >=1.0.0

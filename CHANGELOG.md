@@ -1,5 +1,11 @@
 # mkdocstring-python-xref changes
 
+## 1.14.0
+
+* Work with mkdocstrings-python 1.14 or later
+* Drop python 3.8 support
+* Fix extra files in wheel's RECORD
+
 ## 1.6.2
 
 * Use griffe 1.0 or later

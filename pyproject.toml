@@ -13,19 +13,19 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Documentation",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 keywords = [
     "documentation-tool", "mkdocstrings", "mkdocstrings-handler", "python"
 ]
 dynamic = ["version"]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
-    "mkdocstrings-python >=1.6.2,<2.0",
+    "mkdocstrings-python >=1.14,<2.0",
     "griffe >=1.0"
 ]
 
@@ -47,13 +47,13 @@ include = [
 [tool.hatch.build.targets.sdist]
 packages = [
     "src/mkdocstrings_handlers",
-    "src/mkdocstrings_handlers/python_xref",
+#    "src/mkdocstrings_handlers/python_xref",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = [
     "src/mkdocstrings_handlers",
-    "src/mkdocstrings_handlers/python_xref",
+#    "src/mkdocstrings_handlers/python_xref",
 ]
 
 [tool.mypy]

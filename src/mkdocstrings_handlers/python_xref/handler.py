@@ -1,4 +1,4 @@
-#  Copyright (c) 2022=2023.   Analog Devices Inc.
+#  Copyright (c) 2022-2025.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -17,12 +17,17 @@ Implementation of python_xref handler
 
 from __future__ import annotations
 
-from collections import ChainMap
+import sys
+from dataclasses import dataclass, fields
 from pathlib import Path
-from typing import Any, List, Mapping, Optional
+from textwrap import dedent
+from typing import Annotated, Any, ClassVar, Mapping, MutableMapping, Optional
+from warnings import warn
 
-from griffe import Object
+from mkdocs.config.defaults import MkDocsConfig
+from mkdocstrings.handlers.base import CollectorItem
 from mkdocstrings.loggers import get_logger
+from mkdocstrings_handlers.python.config import PythonOptions, Field, PythonConfig
 from mkdocstrings_handlers.python.handler import PythonHandler
 
 from .crossref import substitute_relative_crossrefs
@@ -33,6 +38,39 @@ __all__ = [
 
 logger = get_logger(__name__)
 
+
+# TODO mkdocstrings 0.28
+#   - `name` and `domain` (py) must be specified as class attributes
+#   - `handler` arg to superclass is deprecated
+#   -  add `mdx` arg to constructor to pass on to superclass
+#   - `config_file_path` arg will no longer be passed
+#
+
+# TODO python 3.9 - remove when 3.9 support is dropped
+_dataclass_options = {"frozen": True}
+if sys.version_info >= (3, 10):
+    _dataclass_options["kw_only"] = True
+
+@dataclass(**_dataclass_options)
+class PythonRelXRefOptions(PythonOptions):
+    check_crossrefs: Annotated[
+        bool,
+        Field(
+            group="docstrings",
+            parent="docstring_options",
+            description=dedent(
+                """
+                Enables early checking of all cross-references. 
+                
+                Note that this option only takes affect if **relative_crossrefs** is 
+                also true. This option is true by default, so this option is used to
+                disable checking. Checking can also be disabled on a per-case basis by 
+                prefixing the reference with '?', e.g. `[something][?dontcheckme]`.
+                """
+            ),
+        ),
+    ] = True
+
 class PythonRelXRefHandler(PythonHandler):
     """Extended version of mkdocstrings Python handler
 
@@ -40,56 +78,82 @@ class PythonRelXRefHandler(PythonHandler):
     * Checks cross-references early in order to produce errors with source location
     """
 
-    handler_name: str = __name__.rsplit('.', 2)[1]
+    name: ClassVar[str] = "python_xref"
+    """Override the handler name"""
 
-    default_config = dict(
-        PythonHandler.default_config,
-        relative_crossrefs = False,
-        check_crossrefs = True,
-    )
+    def __init__(self, config: PythonConfig, base_dir: Path, **kwargs: Any) -> None:
+        """Initialize the handler.
 
-    def __init__(self,
-                 theme: str,
-                 custom_templates: Optional[str] = None,
-                 config_file_path: Optional[str] = None,
-                 paths: Optional[List[str]] = None,
-                 locale: str = "en",
-                 **_config: Any,
-                 ):
-        super().__init__(
-            handler = self.handler_name,
-            theme = theme,
-            custom_templates = custom_templates,
-            config_file_path = config_file_path,
-            paths = paths,
-            locale=locale,
+        Parameters:
+            config: The handler configuration.
+            base_dir: The base directory of the project.
+            **kwargs: Arguments passed to the parent constructor.
+        """
+        check_crossrefs = config.options.pop('check_crossrefs', None)  # Remove
+        super().__init__(config, base_dir, **kwargs)
+        if check_crossrefs is not None:
+            self.global_options["check_crossrefs"] = check_crossrefs
+
+    def get_options(self, local_options: Mapping[str, Any]) -> PythonRelXRefOptions:
+        local_options = dict(local_options)
+        check_crossrefs = local_options.pop('check_crossrefs', None)
+        _opts = super().get_options(local_options)
+        opts = PythonRelXRefOptions(
+            **{field.name: getattr(_opts, field.name) for field in fields(_opts)}
         )
+        if check_crossrefs is not None:
+            opts.check_crossrefs = bool(check_crossrefs)
+        return opts
 
-    def render(self, data: Object, config: Mapping[str,Any]) -> str:
-        final_config = ChainMap(config, self.default_config) # type: ignore[arg-type]
-
-        if final_config["relative_crossrefs"]:
-            checkref = self._check_ref if final_config["check_crossrefs"] else None
+    def render(self, data: CollectorItem, options: PythonOptions) -> str:
+        if options.relative_crossrefs:
+            if isinstance(options, PythonRelXRefOptions):
+                checkref = self._check_ref if options.check_crossrefs else None
+            else:
+                checkref = None
             substitute_relative_crossrefs(data, checkref=checkref)
 
         try:
-            return super().render(data, config)
+            return super().render(data, options)
         except Exception:  # pragma: no cover
             print(f"{data.path=}")
             raise
 
     def get_templates_dir(self, handler: Optional[str] = None) -> Path:
         """See [render][.barf]"""
-        if handler == self.handler_name:
+        if handler == self.name:
             handler = 'python'
         return super().get_templates_dir(handler)
 
     def _check_ref(self, ref:str) -> bool:
         """Check for existence of reference"""
         try:
-            self.collect(ref, {})
+            self.collect(ref, PythonOptions())
             return True
         except Exception:  # pylint: disable=broad-except
             # Only expect a CollectionError but we may as well catch everything.
             return False
 
+def get_handler(
+    handler_config: MutableMapping[str, Any],
+    tool_config: MkDocsConfig,
+    **kwargs: Any,
+) -> PythonHandler:
+    """Simply return an instance of `PythonRelXRefHandler`.
+
+    Arguments:
+        handler_config: The handler configuration.
+        tool_config: The tool (SSG) configuration.
+
+    Returns:
+        An instance of `PythonRelXRefHandler`.
+    """
+    base_dir = Path(tool_config.config_file_path or "./mkdocs.yml").parent
+    if "inventories" not in handler_config and "import" in handler_config:
+        warn("The 'import' key is renamed 'inventories' for the Python handler", FutureWarning, stacklevel=1)
+        handler_config["inventories"] = handler_config.pop("import", [])
+    return PythonRelXRefHandler(
+        config=PythonConfig.from_data(**handler_config),
+        base_dir=base_dir,
+        **kwargs,
+    )
