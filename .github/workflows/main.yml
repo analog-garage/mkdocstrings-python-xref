@@ -22,7 +22,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         condarc-file: github-condarc.yml
         auto-activate-base: true
-        use-mamba: true
+        use-mamba: false
     - name: Dev install package
       run: |
         conda run -n mkxref-dev pip install -e . --no-deps --no-build-isolation
