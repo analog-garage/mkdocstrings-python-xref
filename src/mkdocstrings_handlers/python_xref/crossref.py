@@ -1,4 +1,4 @@
-#  Copyright (c) 2022-2024.   Analog Devices Inc.
+#  Copyright (c) 2022-2025.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ from __future__ import annotations
 import re
 from typing import Callable, List, Optional, cast
 
-from griffe.dataclasses import Docstring, Object
+from griffe import Docstring, Object
 from mkdocstrings.loggers import get_logger
 
 __all__ = [

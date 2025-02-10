@@ -1,4 +1,4 @@
-#  Copyright (c) 2022-2024.   Analog Devices Inc.
+#  Copyright (c) 2022-2025.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -23,21 +23,24 @@ from typing import Any
 
 import pytest
 
-from griffe.dataclasses import Docstring, Object, Module
+from griffe import Docstring, Object, Module
 from mkdocstrings.handlers.base import CollectionError
+from mkdocstrings_handlers.python.config import PythonConfig
 from mkdocstrings_handlers.python.handler import PythonHandler
-from mkdocstrings_handlers.python_xref.handler import PythonRelXRefHandler
+from mkdocstrings_handlers.python_xref.handler import (
+    PythonRelXRefHandler,
+    PythonRelXRefOptions
+)
 
 def test_handler(tmpdir: PathLike,
                  monkeypatch: pytest.MonkeyPatch,
                  caplog: pytest.LogCaptureFixture) -> None:
-    """Unit test for GarpyPythonHandler class
+    """Unit test for PythonRelXRefHandler class
 
     This is a minimal whitebox test that just checks whether PythonHandler class has been
     overridden correctly. A separate test should do doc generation and check the results.
     """
 
-    config_file = os.path.join(tmpdir, 'mkdocs.yml')
     os.mkdir(os.path.join(tmpdir, 'path1'))
     os.mkdir(os.path.join(tmpdir, 'path2'))
     os.makedirs(os.path.join(tmpdir, 'custom_templates', 'python'))
@@ -46,18 +49,22 @@ def test_handler(tmpdir: PathLike,
     # Test construction
     #
 
-    handler = PythonRelXRefHandler(
-        'material',
-        config_file_path = config_file,
-        custom_templates = 'custom_templates',
-        paths = ['path1', 'path2']
+    config = PythonConfig(  # type: ignore[call-arg]
+        paths = ['path1', 'path2'],
     )
-    assert handler.handler_name == 'python_xref'
+
+    handler = PythonRelXRefHandler(
+        config,
+        Path(tmpdir),
+        theme = 'material',
+        custom_templates = 'custom_templates',
+    )
+    assert handler.name == 'python_xref'
 
     # NOTE: these could break if PythonHandler changes
     # pylint: disable=protected-access
-    assert handler.handler_name == 'python_xref'
-    assert handler._config_file_path == config_file
+    assert handler.name == 'python_xref'
+    # assert handler._config_file_path == config_file
     assert os.path.join(tmpdir, 'path1') in handler._paths
     assert os.path.join(tmpdir, 'path2') in handler._paths
 
@@ -65,7 +72,7 @@ def test_handler(tmpdir: PathLike,
     # Test get_templates_dir() redirection
     #
 
-    assert handler.get_templates_dir(handler.handler_name) == handler.get_templates_dir('python')
+    assert handler.get_templates_dir(handler.name) == handler.get_templates_dir('python')
 
     #
     # Test render()
@@ -88,13 +95,19 @@ def test_handler(tmpdir: PathLike,
     docstring = "[foo][.] [bar][bad.]"
     obj.docstring = Docstring(docstring, parent=obj)
 
-    rendered = handler.render(obj, {})
+    rendered = handler.render(obj, PythonRelXRefOptions())
     assert rendered == docstring
 
-    rendered = handler.render(obj, dict(relative_crossrefs=False))
+    rendered = handler.render(
+        obj,
+        PythonRelXRefOptions(relative_crossrefs=False), # type: ignore[call-arg]
+    )
     assert rendered == docstring
 
-    rendered = handler.render(obj, dict(relative_crossrefs=True))
+    rendered = handler.render(
+        obj,
+        PythonRelXRefOptions(relative_crossrefs=True), # type: ignore[call-arg]
+    )
     assert rendered == "[foo][mod.foo] [bar][bad.bar]"
     assert len(caplog.records) == 1
     _, level, msg = caplog.record_tuples[0]
@@ -102,17 +115,26 @@ def test_handler(tmpdir: PathLike,
     assert "Cannot load reference 'bad.bar'" in msg
     caplog.clear()
 
-    rendered = handler.render(obj, dict(relative_crossrefs=True, check_crossrefs=False))
+    rendered = handler.render(
+        obj,
+        PythonRelXRefOptions(relative_crossrefs=True, check_crossrefs=False), # type: ignore[call-arg]
+    )
     assert rendered == "[foo][mod.foo] [bar][bad.bar]"
     assert len(caplog.records) == 0
 
-    rendered = handler.render(obj, dict(relative_crossrefs=True, check_crossrefs=False))
+    rendered = handler.render(
+        obj,
+        PythonRelXRefOptions(relative_crossrefs=True, check_crossrefs=False), # type: ignore[call-arg]
+    )
     assert rendered == "[foo][mod.foo] [bar][bad.bar]"
     assert len(caplog.records) == 0
 
     docstring = "\n\n[foo][bad.foo]"
     obj.docstring = Docstring(docstring, parent=obj)
-    rendered = handler.render(obj, dict(relative_crossrefs=True))
+    rendered = handler.render(
+        obj,
+        PythonRelXRefOptions(relative_crossrefs=True), # type: ignore[call-arg]
+    )
     assert rendered == "[foo][bad.foo]"
     assert len(caplog.records) == 1
     _, level, msg = caplog.record_tuples[0]
@@ -122,6 +144,9 @@ def test_handler(tmpdir: PathLike,
 
     docstring = "[foo][?bad.foo] [bar][?bad.]"
     obj.docstring = Docstring(docstring, parent=obj)
-    rendered = handler.render(obj, dict(relative_crossrefs=True, check_crossrefs=True))
+    rendered = handler.render(
+        obj,
+        PythonRelXRefOptions(relative_crossrefs=True, check_crossrefs=True), # type: ignore[call-arg]
+    )
     assert rendered == "[foo][bad.foo] [bar][bad.bar]"
     assert len(caplog.records) == 0

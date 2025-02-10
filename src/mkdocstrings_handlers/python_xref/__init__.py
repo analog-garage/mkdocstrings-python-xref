@@ -1,4 +1,4 @@
-#  Copyright (c) 2022-2023.   Analog Devices Inc.
+#  Copyright (c) 2022-2025.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
 Extended mkdocstrings python handler
 """
 
-from .handler import PythonRelXRefHandler
+from .handler import get_handler
 
 __all__ = ["get_handler"]
 
-get_handler = PythonRelXRefHandler

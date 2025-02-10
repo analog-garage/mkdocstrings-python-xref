@@ -18,7 +18,7 @@ import re
 import subprocess as sp
 from os import PathLike
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import bs4
 
@@ -29,7 +29,7 @@ test_project_mkdocs = test_project_dir.joinpath('mkdocs.yml')
 bar_src_file = test_project_dir.joinpath('src', 'myproj', 'bar.py')
 
 
-def check_autorefs(autorefs: List[bs4.Tag], cases: Dict[Tuple[str,str],str] ) -> None:
+def check_autorefs(autorefs: List[Any], cases: Dict[Tuple[str,str],str] ) -> None:
     """
     Verify autorefs contain expected cases
 
@@ -66,7 +66,13 @@ def test_integration(tmpdir: PathLike) -> None:
         '-d',
         str(site_dir)
     ]
-    result = sp.run(mkdocs_cmd, stdout=sp.PIPE, stderr=sp.PIPE, encoding='utf8', check=False)
+    result = sp.run(
+        mkdocs_cmd,
+        stdout=sp.PIPE,
+        stderr=sp.PIPE,
+        encoding='utf8',
+        check=False,
+    )
 
     assert result.returncode == 0
 
@@ -86,7 +92,7 @@ def test_integration(tmpdir: PathLike) -> None:
     bar_html = site_dir.joinpath('bar', 'index.html').read_text()
     bar_bs = bs4.BeautifulSoup(bar_html, 'html.parser')
 
-    autorefs: List[bs4.Tag] = bar_bs.find_all('a', attrs=['autorefs'])
+    autorefs = bar_bs.find_all('a', {'class' : 'autorefs'})
     assert len(autorefs) >= 5
 
     check_autorefs(
@@ -104,7 +110,7 @@ def test_integration(tmpdir: PathLike) -> None:
     baz_html = site_dir.joinpath('pkg-baz', 'index.html').read_text()
     baz_bs = bs4.BeautifulSoup(baz_html, 'html.parser')
 
-    autorefs = baz_bs.find_all('a', attrs=['autorefs'])
+    autorefs = baz_bs.find_all('a', attrs={'class':'autorefs'})
     assert len(autorefs) >= 1
 
     check_autorefs(

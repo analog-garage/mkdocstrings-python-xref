@@ -79,6 +79,7 @@ help:
 	@$(ECHO) "build           - Build wheel"
 	@$(ECHO) "build-wheel     - Build wheel."
 	@$(ECHO) "build-conda     - Build conda package (requires whl2conda)"
+	@$(ECHO) "unpacked-wheel  - Build wheel and unpack it (for debugging)"
 	@$(ECHO)
 	@$(ECHO) "$(SECTION_COLOR)--- upload ---$(COLORLESS)"
 	@$(ECHO) "upload          - Upload wheel to pypi (requires authorization)"
@@ -163,6 +164,9 @@ $(CONDA_FILE): $(WHEEL_FILE)
 build-conda: $(CONDA_FILE)
 
 build: build-wheel build-sdist build-conda
+
+unpacked-wheel: $(WHEEL_FILE)
+	$(CONDA_RUN) wheel unpack $(WHEEL_FILE) -d dist
 
 site/index.html: $(MKDOC_FILES) $(SRC_FILES)
 	$(CONDA_RUN) mkdocs build -f $(MKDOC_CONFIG)
