@@ -12,11 +12,11 @@ jobs:
         python-version: ["3.9", "3.11", "3.13"]
     steps:
     - uses: actions/checkout@v3
-    - uses: goanpeca/setup-miniconda@v2.2.0
+    - uses: conda-incubator/setup-miniconda@v3.0.4
       with:
         miniforge-version: latest
-        conda-version: ">=23.7.4"
-        conda-build-version: ">=3.26"
+        conda-version: ">=24.11"
+        conda-build-version: ">=25.1"
         environment-file: environment.yml
         activate-environment: mkxref-dev
         python-version: ${{ matrix.python-version }}
