@@ -322,7 +322,7 @@ def substitute_relative_crossrefs(obj: Object, checkref: Optional[Callable[[str]
     """Recursively expand relative cross-references in all docstrings in tree.
 
     Arguments:
-        obj: a Griffe [Object][griffe.dataclasses.] whose docstrings should be modified
+        obj: a Griffe [Object][griffe.] whose docstrings should be modified
         checkref: optional function to check whether computed cross-reference is valid.
             Should return True if valid, False if not valid.
     """

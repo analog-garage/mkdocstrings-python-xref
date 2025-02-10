@@ -6,8 +6,9 @@ dependencies:
   # runtime
   - python >=3.8,<3.13
   - mkdocstrings-python >=1.6.2,<2.0
+  - griffe >=1.0
   # build
-  - build >=0.7.0
+  - python-build >=1.0.0
   - hatchling >=1.21
   # test
   - coverage >=7.4.0
