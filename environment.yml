@@ -5,7 +5,7 @@ channels:
 dependencies:
   # runtime
   - python >=3.9,<3.14
-  - mkdocstrings-python >=1.14,<1.16 # BUG: #32
+  - mkdocstrings-python >=1.16.6,<2
   - griffe >=1.0
   # build
   - python-build >=1.0.0
@@ -24,3 +24,4 @@ dependencies:
   - mkdocs >=1.5.3,<2.0
   - mkdocs-material >=9.5.4
   - linkchecker >=10.4
+  - pydantic >=2.0

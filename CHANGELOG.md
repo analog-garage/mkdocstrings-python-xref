@@ -1,5 +1,9 @@
 # mkdocstring-python-xref changes
 
+## 1.16.0
+
+* Compatibility with mkdocstrings-python 1.16.*
+
 ## 1.14.1
 
 * Restrict to mkdocstrings-python <1.16 (see bug #32)
