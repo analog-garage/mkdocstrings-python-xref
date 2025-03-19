@@ -20,15 +20,12 @@ from __future__ import annotations
 import sys
 from dataclasses import dataclass, fields
 from pathlib import Path
-from textwrap import dedent
-from typing import Annotated, Any, ClassVar, Mapping, MutableMapping, Optional
+from typing import Any, ClassVar, Mapping, MutableMapping, Optional
 from warnings import warn
 
 from mkdocs.config.defaults import MkDocsConfig
-from mkdocstrings.handlers.base import CollectorItem
-from mkdocstrings.loggers import get_logger
-from mkdocstrings_handlers.python.config import PythonOptions, Field, PythonConfig
-from mkdocstrings_handlers.python.handler import PythonHandler
+from mkdocstrings import CollectorItem, get_logger
+from mkdocstrings_handlers.python import PythonHandler, PythonOptions, PythonConfig
 
 from .crossref import substitute_relative_crossrefs
 
@@ -38,14 +35,6 @@ __all__ = [
 
 logger = get_logger(__name__)
 
-
-# TODO mkdocstrings 0.28
-#   - `name` and `domain` (py) must be specified as class attributes
-#   - `handler` arg to superclass is deprecated
-#   -  add `mdx` arg to constructor to pass on to superclass
-#   - `config_file_path` arg will no longer be passed
-#
-
 # TODO python 3.9 - remove when 3.9 support is dropped
 _dataclass_options = {"frozen": True}
 if sys.version_info >= (3, 10):
@@ -53,23 +42,7 @@ if sys.version_info >= (3, 10):
 
 @dataclass(**_dataclass_options)
 class PythonRelXRefOptions(PythonOptions):
-    check_crossrefs: Annotated[
-        bool,
-        Field(
-            group="docstrings",
-            parent="docstring_options",
-            description=dedent(
-                """
-                Enables early checking of all cross-references. 
-                
-                Note that this option only takes affect if **relative_crossrefs** is 
-                also true. This option is true by default, so this option is used to
-                disable checking. Checking can also be disabled on a per-case basis by 
-                prefixing the reference with '?', e.g. `[something][?dontcheckme]`.
-                """
-            ),
-        ),
-    ] = True
+    check_crossrefs: bool = True
 
 class PythonRelXRefHandler(PythonHandler):
     """Extended version of mkdocstrings Python handler

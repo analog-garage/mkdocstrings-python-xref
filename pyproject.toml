@@ -25,7 +25,7 @@ keywords = [
 dynamic = ["version"]
 requires-python = ">=3.9"
 dependencies = [
-    "mkdocstrings-python >=1.14,<1.16", # BUG: #32
+    "mkdocstrings-python >=1.16.6,<2.0",
     "griffe >=1.0"
 ]
 

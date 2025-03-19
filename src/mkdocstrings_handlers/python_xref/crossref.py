@@ -19,7 +19,7 @@ import re
 from typing import Callable, List, Optional, cast
 
 from griffe import Docstring, Object
-from mkdocstrings.loggers import get_logger
+from mkdocstrings import get_logger
 
 __all__ = [
     "substitute_relative_crossrefs"
