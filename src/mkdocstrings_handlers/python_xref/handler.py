@@ -24,10 +24,8 @@ from typing import Any, ClassVar, Mapping, MutableMapping, Optional
 from warnings import warn
 
 from mkdocs.config.defaults import MkDocsConfig
-from mkdocstrings.handlers.base import CollectorItem
-from mkdocstrings.loggers import get_logger
-from mkdocstrings_handlers.python import PythonOptions, PythonConfig
-from mkdocstrings_handlers.python.handler import PythonHandler
+from mkdocstrings import CollectorItem, get_logger
+from mkdocstrings_handlers.python import PythonHandler, PythonOptions, PythonConfig
 
 from .crossref import substitute_relative_crossrefs
 

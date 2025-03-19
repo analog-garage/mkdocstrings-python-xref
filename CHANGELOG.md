@@ -3,6 +3,7 @@
 ## 1.16.0
 
 * Compatibility with mkdocstrings-python 1.16.*
+* Removed some deprecated imports from mkdoctrings
 
 ## 1.14.1
 
