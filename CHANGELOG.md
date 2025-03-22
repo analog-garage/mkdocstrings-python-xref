@@ -1,5 +1,9 @@
 # mkdocstring-python-xref changes
 
+## 1.16.1
+
+* Fix sdist distributions (should enable conda-forge to build)
+
 ## 1.16.0
 
 * Compatibility with mkdocstrings-python 1.16.*

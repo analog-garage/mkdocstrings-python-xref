@@ -44,16 +44,9 @@ include = [
     "src/mkdocstrings_handlers/python_xref/py.typed",
 ]
 
-[tool.hatch.build.targets.sdist]
-packages = [
-    "src/mkdocstrings_handlers",
-#    "src/mkdocstrings_handlers/python_xref",
-]
-
 [tool.hatch.build.targets.wheel]
 packages = [
     "src/mkdocstrings_handlers",
-#    "src/mkdocstrings_handlers/python_xref",
 ]
 
 [tool.mypy]

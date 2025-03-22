@@ -24,9 +24,9 @@ from typing import Any
 import pytest
 
 from griffe import Docstring, Object, Module
-from mkdocstrings.handlers.base import CollectionError
-from mkdocstrings_handlers.python.config import PythonConfig
-from mkdocstrings_handlers.python.handler import PythonHandler
+from mkdocstrings import CollectionError
+from mkdocstrings_handlers.python import PythonConfig
+from mkdocstrings_handlers.python import PythonHandler
 from mkdocstrings_handlers.python_xref.handler import (
     PythonRelXRefHandler,
     PythonRelXRefOptions
