@@ -204,7 +204,7 @@ def make_docstring_from_source(
     mod.lines_collection[filepath] = lines
     doc = Docstring(
         parent=mod,
-        value=inspect.cleandoc(literal_eval(source)),
+        value=inspect.cleandoc(eval(source)),
         lineno=lineno,
         endlineno=len(lines)
     )
@@ -235,6 +235,7 @@ def test_doc_value_offset_to_location() -> None:
                   second
                    third
                """  # a comment
+               
             # another comment
             '''
         ).lstrip("\n"),

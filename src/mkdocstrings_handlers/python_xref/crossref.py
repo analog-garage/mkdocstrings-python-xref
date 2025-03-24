@@ -15,9 +15,10 @@
 
 from __future__ import annotations
 
+import ast
 import re
-from ast import literal_eval
-from typing import Callable, List, Optional, cast
+import sys
+from typing import Any, Callable, List, Optional, cast
 
 from griffe import Docstring, Object
 from mkdocstrings import get_logger
@@ -353,7 +354,7 @@ def doc_value_offset_to_location(doc: Docstring, offset: int) -> tuple[int,int]:
         try:
             source = doc.source
             # compute docstring without cleaning up spaces and indentation
-            rawvalue = str(literal_eval(source))
+            rawvalue = str(safe_eval(source))
 
             # adjust line offset by number of lines removed from front of docstring
             lineoffset += leading_space(rawvalue).count("\n")
@@ -388,3 +389,13 @@ def leading_space(s: str) -> str:
     if m := re.match(r"\s*", s):
         return m[0]
     return "" # pragma: no cover
+
+if sys.version_info < (3, 10) or True:
+    # TODO: remove when 3.9 support is dropped
+    # In 3.9, literal_eval cannot handle comments in input
+    def safe_eval(s: str) -> Any:
+        """Safely evaluate a string expression."""
+        return eval(s) #eval(s, dict(__builtins__={}), {})
+else:
+    save_eval = ast.literal_eval
+
