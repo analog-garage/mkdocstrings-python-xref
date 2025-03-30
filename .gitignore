@@ -37,3 +37,7 @@ conda-meta-data.json
 
 
 
+
+# pixi environments
+.pixi
+*.egg-info
