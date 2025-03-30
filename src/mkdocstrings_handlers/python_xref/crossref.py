@@ -343,7 +343,7 @@ def doc_value_offset_to_location(doc: Docstring, offset: int) -> tuple[int,int]:
         line and column or else (-1,-1) if it cannot be computed
     """
     linenum = -1
-    colnum = -1
+    colnum = -2
 
     if doc.lineno is not None:
         linenum = doc.lineno # start of the docstring source
@@ -359,8 +359,8 @@ def doc_value_offset_to_location(doc: Docstring, offset: int) -> tuple[int,int]:
             # adjust line offset by number of lines removed from front of docstring
             lineoffset += leading_space(rawvalue).count("\n")
 
-            if lineoffset == 0 and (m := re.match(r"(\s*['\"]{3}\s*)\S", source)):
-                # is on the same line as opening triple quote
+            if lineoffset == 0 and (m := re.match(r"(\s*['\"]{1,3}\s*)\S", source)):
+                # is on the same line as opening quote
                 colnum = offset + len(m.group(1))
             else:
                 # indentation of first non-empty line in raw and cleaned up strings
@@ -381,7 +381,7 @@ def doc_value_offset_to_location(doc: Docstring, offset: int) -> tuple[int,int]:
 
         linenum += lineoffset
 
-    return linenum, colnum
+    return linenum, colnum + 1
 
 
 def leading_space(s: str) -> str:

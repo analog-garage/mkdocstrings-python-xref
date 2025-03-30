@@ -5,7 +5,8 @@ are compatible with.*
 
 ## 1.16.2
 
-* Improved source locations for errors in docstrings now including column offset.
+* Improved source locations for errors in docstrings now including column numbers
+  (starting at 1).
 
 ## 1.16.1
 

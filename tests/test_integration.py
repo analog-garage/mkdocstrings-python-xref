@@ -86,7 +86,7 @@ def test_integration(tmpdir: PathLike) -> None:
     assert m[4] == 'myproj.bar.bad'
     # Source location not accurate in python 3.7
     bad_linenum = int(m[2])
-    bad_col = int(m[3])
+    bad_col = int(m[3]) - 1 # 1-based indexing
     bar_lines = bar_src_file.read_text().splitlines()
     bad_line = bar_lines[bad_linenum - 1]
     assert '[bad]' in bad_line

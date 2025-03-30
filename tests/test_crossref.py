@@ -223,10 +223,11 @@ def test_doc_value_offset_to_location() -> None:
         ).lstrip("\n"),
     )
 
-    assert doc_value_offset_to_location(doc1, 0) == (1, 3)
-    assert doc_value_offset_to_location(doc1, 3) == (1, 6)
-    assert doc_value_offset_to_location(doc1, 7) == (2, 1)
-    assert doc_value_offset_to_location(doc1, 15) == (3, 2)
+    # note columns start with 1
+    assert doc_value_offset_to_location(doc1, 0) == (1, 4)
+    assert doc_value_offset_to_location(doc1, 3) == (1, 7)
+    assert doc_value_offset_to_location(doc1, 7) == (2, 2)
+    assert doc_value_offset_to_location(doc1, 15) == (3, 3)
 
     doc2 = make_docstring_from_source(
         dedent(
@@ -242,9 +243,9 @@ def test_doc_value_offset_to_location() -> None:
         lineno=3,
     )
 
-    assert doc_value_offset_to_location(doc2, 0) == (3, 9)
-    assert doc_value_offset_to_location(doc2, 6) == (4, 6)
-    assert doc_value_offset_to_location(doc2, 15) == (5, 8)
+    assert doc_value_offset_to_location(doc2, 0) == (3, 10)
+    assert doc_value_offset_to_location(doc2, 6) == (4, 7)
+    assert doc_value_offset_to_location(doc2, 15) == (5, 9)
 
     # Remove parent so that source is not available
     doc2.parent = None
@@ -261,5 +262,5 @@ def test_doc_value_offset_to_location() -> None:
         ).lstrip("\n"),
     )
 
-    assert doc_value_offset_to_location(doc3, 0) == (2, 4)
-    assert doc_value_offset_to_location(doc3, 6) == (3, 2)
+    assert doc_value_offset_to_location(doc3, 0) == (2, 5)
+    assert doc_value_offset_to_location(doc3, 6) == (3, 3)
