@@ -1,4 +1,4 @@
-#  Copyright (c) 2022-2024.   Analog Devices Inc.
+#  Copyright (c) 2022-2025.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -77,17 +77,20 @@ def test_integration(tmpdir: PathLike) -> None:
     assert result.returncode == 0
 
     m = re.search(
-        r"WARNING.*file://(/.*/myproj/bar.py):(\d+):\s*\n\s*Cannot load reference '(.*)'",
+        r"WARNING.*file://(/.*/myproj/bar.py):(\d+):(\d+):\s*\n\s*Cannot load reference '(.*)'",
         result.stderr
     )
     assert m is not None
     if os.path.sep == '/':
         assert m[1] == str(bar_src_file)
-    assert m[3] == 'myproj.bar.bad'
+    assert m[4] == 'myproj.bar.bad'
     # Source location not accurate in python 3.7
-    bad_line = int(m[2])
+    bad_linenum = int(m[2])
+    bad_col = int(m[3]) - 1 # 1-based indexing
     bar_lines = bar_src_file.read_text().splitlines()
-    assert '[bad]' in bar_lines[bad_line - 1]
+    bad_line = bar_lines[bad_linenum - 1]
+    assert '[bad]' in bad_line
+    assert bad_line[bad_col:].startswith('[bad]')
 
     bar_html = site_dir.joinpath('bar', 'index.html').read_text()
     bar_bs = bs4.BeautifulSoup(bar_html, 'html.parser')

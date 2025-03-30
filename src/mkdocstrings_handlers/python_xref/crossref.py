@@ -15,8 +15,10 @@
 
 from __future__ import annotations
 
+import ast
 import re
-from typing import Callable, List, Optional, cast
+import sys
+from typing import Any, Callable, List, Optional, cast
 
 from griffe import Docstring, Object
 from mkdocstrings import get_logger
@@ -303,14 +305,12 @@ class _RelativeCrossrefProcessor:
             # We include the file:// prefix because it helps IDEs such as PyCharm
             # recognize that this is a navigable location it can highlight.
             prefix = f"file://{parent.filepath}:"
-            line = doc.lineno
-            if line is not None:  # pragma: no branch
-                # Add line offset to match in docstring. This can still be
-                # short if the doc string has leading newlines.
-                line += doc.value.count("\n", 0, self._cur_offset)
+            line, col = doc_value_offset_to_location(doc, self._cur_offset)
+            if line >= 0:
                 prefix += f"{line}:"
-                # It would be nice to add the column as well, but we cannot determine
-                # that without knowing how much the doc string was unindented.
+                if col >= 0:
+                    prefix += f"{col}:"
+
             prefix += " \n"
 
         logger.warning(prefix + msg)
@@ -334,3 +334,68 @@ def substitute_relative_crossrefs(obj: Object, checkref: Optional[Callable[[str]
     for member in obj.members.values():
         if isinstance(member, Object):  # pragma: no branch
             substitute_relative_crossrefs(member, checkref=checkref)
+
+def doc_value_offset_to_location(doc: Docstring, offset: int) -> tuple[int,int]:
+    """
+    Converts offset into doc.value to line and column in source file.
+
+    Returns:
+        line and column or else (-1,-1) if it cannot be computed
+    """
+    linenum = -1
+    colnum = -2
+
+    if doc.lineno is not None:
+        linenum = doc.lineno # start of the docstring source
+        # line offset with respect to start of cleaned up docstring
+        lineoffset = clean_lineoffset = doc.value.count("\n", 0, offset)
+
+        # look at original doc source, if available
+        try:
+            source = doc.source
+            # compute docstring without cleaning up spaces and indentation
+            rawvalue = str(safe_eval(source))
+
+            # adjust line offset by number of lines removed from front of docstring
+            lineoffset += leading_space(rawvalue).count("\n")
+
+            if lineoffset == 0 and (m := re.match(r"(\s*['\"]{1,3}\s*)\S", source)):
+                # is on the same line as opening quote
+                colnum = offset + len(m.group(1))
+            else:
+                # indentation of first non-empty line in raw and cleaned up strings
+                raw_line = rawvalue.splitlines()[lineoffset]
+                clean_line = doc.value.splitlines()[clean_lineoffset]
+                raw_indent = len(leading_space(raw_line))
+                clean_indent = len(leading_space(clean_line))
+                try:
+                    linestart = doc.value.rindex("\n", 0, offset) + 1
+                except ValueError: # pragma: no cover
+                    linestart = 0 # paranoid check, should not really happen
+                colnum = offset - linestart + raw_indent - clean_indent
+
+        except Exception:
+            # Don't expect to get here, but just in case, it is better to
+            # not fix up the line/column than to die.
+            pass
+
+        linenum += lineoffset
+
+    return linenum, colnum + 1
+
+
+def leading_space(s: str) -> str:
+    """Returns whitespace at the front of string."""
+    if m := re.match(r"\s*", s):
+        return m[0]
+    return "" # pragma: no cover
+
+if sys.version_info < (3, 10) or True:
+    # TODO: remove when 3.9 support is dropped
+    # In 3.9, literal_eval cannot handle comments in input
+    def safe_eval(s: str) -> Any:
+        """Safely evaluate a string expression."""
+        return eval(s) #eval(s, dict(__builtins__={}), {})
+else:
+    save_eval = ast.literal_eval
+

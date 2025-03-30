@@ -18,18 +18,20 @@ from __future__ import annotations
 import inspect
 import logging
 import re
+from ast import literal_eval
 from pathlib import Path
+from textwrap import dedent
 from typing import Callable, Optional
 
 import pytest
-from griffe import Class, Docstring, Function, Module, Object
+from griffe import Class, Docstring, Function, Module, Object, LinesCollection
 
 # noinspection PyProtectedMember
 from mkdocstrings_handlers.python_xref.crossref import (
     _RE_CROSSREF,
     _RE_REL_CROSSREF,
     _RelativeCrossrefProcessor,
-    substitute_relative_crossrefs,
+    substitute_relative_crossrefs, doc_value_offset_to_location,
 )
 
 def test_RelativeCrossrefProcessor(caplog: pytest.LogCaptureFixture) -> None:
@@ -153,6 +155,7 @@ def test_substitute_relative_crossrefs(caplog: pytest.LogCaptureFixture) -> None
     """,
         parent=meth1,
         lineno=42,
+        endlineno=45,
     )
 
     mod1.docstring = Docstring(
@@ -161,6 +164,7 @@ def test_substitute_relative_crossrefs(caplog: pytest.LogCaptureFixture) -> None
     """,
         parent=mod1,
         lineno=23,
+        endlineno=25,
     )
 
     substitute_relative_crossrefs(mod1)
@@ -173,3 +177,90 @@ def test_substitute_relative_crossrefs(caplog: pytest.LogCaptureFixture) -> None
     )
 
     assert len(caplog.records) == 0
+
+def make_docstring_from_source(
+    source: str,
+    *,
+    lineno: int = 1,
+    mod_name: str = "mod",
+    mod_dir: Path = Path(""),
+) -> Docstring:
+    """
+    Create a docstring object from source code.
+
+    Args:
+        source: raw source code containing docstring source lines
+        lineno: line number of docstring starting quotes
+        mod_name: name of module
+        mod_dir: module directory
+    """
+    filepath = mod_dir.joinpath(mod_name).with_suffix(".py")
+    parent = Object("", lines_collection=LinesCollection())
+    mod = Module(name=mod_name, filepath=filepath, parent=parent)
+    lines = source.splitlines(keepends=False)
+    if lineno > 1:
+        # Insert empty lines to pad to the desired line number
+        lines = [""] * (lineno - 1) + lines
+    mod.lines_collection[filepath] = lines
+    doc = Docstring(
+        parent=mod,
+        value=inspect.cleandoc(eval(source)),
+        lineno=lineno,
+        endlineno=len(lines)
+    )
+    return doc
+
+def test_doc_value_offset_to_location() -> None:
+    """Unit test for _doc_value_offset_to_location."""
+    doc1 = make_docstring_from_source(
+        dedent(
+            '''
+            """first
+            second
+            third
+            """
+            '''
+        ).lstrip("\n"),
+    )
+
+    # note columns start with 1
+    assert doc_value_offset_to_location(doc1, 0) == (1, 4)
+    assert doc_value_offset_to_location(doc1, 3) == (1, 7)
+    assert doc_value_offset_to_location(doc1, 7) == (2, 2)
+    assert doc_value_offset_to_location(doc1, 15) == (3, 3)
+
+    doc2 = make_docstring_from_source(
+        dedent(
+            '''   
+               """   first
+                  second
+                   third
+               """  # a comment
+               
+            # another comment
+            '''
+        ).lstrip("\n"),
+        lineno=3,
+    )
+
+    assert doc_value_offset_to_location(doc2, 0) == (3, 10)
+    assert doc_value_offset_to_location(doc2, 6) == (4, 7)
+    assert doc_value_offset_to_location(doc2, 15) == (5, 9)
+
+    # Remove parent so that source is not available
+    doc2.parent = None
+    assert doc_value_offset_to_location(doc2, 0) == (3, -1)
+
+    doc3 = make_docstring_from_source(
+        dedent(
+            """
+            '''
+                first
+              second
+            '''
+            """
+        ).lstrip("\n"),
+    )
+
+    assert doc_value_offset_to_location(doc3, 0) == (2, 5)
+    assert doc_value_offset_to_location(doc3, 6) == (3, 3)

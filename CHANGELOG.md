@@ -1,5 +1,13 @@
 # mkdocstring-python-xref changes
 
+*Note that versions roughly correspond to the version of mkdocstrings-python that they 
+are compatible with.*
+
+## 1.16.2
+
+* Improved source locations for errors in docstrings now including column numbers
+  (starting at 1).
+
 ## 1.16.1
 
 * Fix sdist distributions (should enable conda-forge to build)
@@ -7,7 +15,7 @@
 ## 1.16.0
 
 * Compatibility with mkdocstrings-python 1.16.*
-* Removed some deprecated imports from mkdoctrings
+* Removed some deprecated imports from mkdocstrings
 
 ## 1.14.1
 

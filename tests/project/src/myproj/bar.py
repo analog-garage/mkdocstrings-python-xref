@@ -1,4 +1,4 @@
-#  Copyright (c) 2022.   Analog Devices Inc.
+#  Copyright (c) 2022-2025.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -33,3 +33,11 @@ class Bar(Foo):
 def func() -> None:
     """This is a function in the [bar][(m)] module."""
 
+
+class Bad:
+    """More bad references"""
+    def bad_ref_leading_space(self) -> None:
+        """
+
+        This is a [bad][.] reference with leading space
+        """
