@@ -17,7 +17,7 @@ jobs:
         pixi-version: v0.43.3
         cache: true
         auth-host: prefix.dev
-        auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
+        auth-token: ${{ secrets.GITHUB_TOKEN }}
     - name: ruff
       run: |
         pixi run ruff
