@@ -45,7 +45,7 @@ if sys.version_info >= (3, 10):
 @dataclass(**_dataclass_options)
 class PythonRelXRefOptions(PythonOptions):
     check_crossrefs: bool = True
-    check_crossrefs_exclude: list[str] = field(default_factory=list)
+    check_crossrefs_exclude: list[str | re.Pattern] = field(default_factory=list)
 
 class PythonRelXRefHandler(PythonHandler):
     """Extended version of mkdocstrings Python handler
@@ -66,8 +66,8 @@ class PythonRelXRefHandler(PythonHandler):
             **kwargs: Arguments passed to the parent constructor.
         """
         self.check_crossrefs = config.options.pop('check_crossrefs', None)
-        self.check_crossrefs_exclude = config.options.pop(
-            'check_crossrefs_exclude', [])
+        exclude = config.options.pop('check_crossrefs_exclude', [])
+        self.check_crossrefs_exclude = [re.compile(p) for p in exclude]
         super().__init__(config, base_dir, **kwargs)
 
     def get_options(self, local_options: Mapping[str, Any]) -> PythonRelXRefOptions:
@@ -105,7 +105,7 @@ class PythonRelXRefHandler(PythonHandler):
             handler = 'python'
         return super().get_templates_dir(handler)
 
-    def _check_ref(self, ref : str, exclude: list[str] = []) -> bool:
+    def _check_ref(self, ref : str, exclude: list[str | re.Pattern] = []) -> bool:
         """Check for existence of reference"""
         for ex in exclude:
             if re.match(ex, ref):
