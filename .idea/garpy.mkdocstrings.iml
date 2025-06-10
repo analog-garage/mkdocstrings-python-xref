@@ -6,6 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.mypy_cache" />
       <excludeFolder url="file://$MODULE_DIR$/.pytest_cache" />
       <excludeFolder url="file://$MODULE_DIR$/.tox" />
+      <excludeFolder url="file://$MODULE_DIR$/.pixi" />
     </content>
     <orderEntry type="jdk" jdkName="mkxref-dev" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
