@@ -65,7 +65,7 @@ class PythonRelXRefHandler(PythonHandler):
             base_dir: The base directory of the project.
             **kwargs: Arguments passed to the parent constructor.
         """
-        self.check_crossrefs = config.options.pop('check_crossrefs', None)
+        self.check_crossrefs = config.options.pop('check_crossrefs', True)
         exclude = config.options.pop('check_crossrefs_exclude', [])
         self.check_crossrefs_exclude = [re.compile(p) for p in exclude]
         super().__init__(config, base_dir, **kwargs)
