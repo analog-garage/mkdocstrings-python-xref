@@ -17,8 +17,10 @@ Implementation of python_xref handler
 
 from __future__ import annotations
 
+import re
 import sys
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, field, fields
+from functools import partial
 from pathlib import Path
 from typing import Any, ClassVar, Mapping, MutableMapping, Optional
 from warnings import warn
@@ -43,6 +45,7 @@ if sys.version_info >= (3, 10):
 @dataclass(**_dataclass_options)
 class PythonRelXRefOptions(PythonOptions):
     check_crossrefs: bool = True
+    check_crossrefs_exclude: list[str | re.Pattern] = field(default_factory=list)
 
 class PythonRelXRefHandler(PythonHandler):
     """Extended version of mkdocstrings Python handler
@@ -62,26 +65,30 @@ class PythonRelXRefHandler(PythonHandler):
             base_dir: The base directory of the project.
             **kwargs: Arguments passed to the parent constructor.
         """
-        check_crossrefs = config.options.pop('check_crossrefs', None)  # Remove
+        self.check_crossrefs = config.options.pop('check_crossrefs', True)
+        exclude = config.options.pop('check_crossrefs_exclude', [])
+        self.check_crossrefs_exclude = [re.compile(p) for p in exclude]
         super().__init__(config, base_dir, **kwargs)
-        if check_crossrefs is not None:
-            self.global_options["check_crossrefs"] = check_crossrefs
 
     def get_options(self, local_options: Mapping[str, Any]) -> PythonRelXRefOptions:
         local_options = dict(local_options)
-        check_crossrefs = local_options.pop('check_crossrefs', None)
+        check_crossrefs = local_options.pop(
+            'check_crossrefs', self.check_crossrefs)
+        check_crossrefs_exclude = local_options.pop(
+            'check_crossrefs_exclude', self.check_crossrefs_exclude)
         _opts = super().get_options(local_options)
         opts = PythonRelXRefOptions(
+            check_crossrefs=check_crossrefs,
+            check_crossrefs_exclude=check_crossrefs_exclude,
             **{field.name: getattr(_opts, field.name) for field in fields(_opts)}
         )
-        if check_crossrefs is not None:
-            opts.check_crossrefs = bool(check_crossrefs)
         return opts
 
     def render(self, data: CollectorItem, options: PythonOptions) -> str:
         if options.relative_crossrefs:
-            if isinstance(options, PythonRelXRefOptions):
-                checkref = self._check_ref if options.check_crossrefs else None
+            if isinstance(options, PythonRelXRefOptions) and options.check_crossrefs:
+                checkref = partial(
+                    self._check_ref, exclude=options.check_crossrefs_exclude)
             else:
                 checkref = None
             substitute_relative_crossrefs(data, checkref=checkref)
@@ -98,8 +105,11 @@ class PythonRelXRefHandler(PythonHandler):
             handler = 'python'
         return super().get_templates_dir(handler)
 
-    def _check_ref(self, ref:str) -> bool:
+    def _check_ref(self, ref : str, exclude: list[str | re.Pattern] = []) -> bool:
         """Check for existence of reference"""
+        for ex in exclude:
+            if re.match(ex, ref):
+                return True
         try:
             self.collect(ref, PythonOptions())
             return True
