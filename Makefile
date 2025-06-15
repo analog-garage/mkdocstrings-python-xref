@@ -1,3 +1,5 @@
+# This makefile is deprecated!
+
 CONDA := conda
 ECHO := echo
 RM := rm
@@ -32,13 +34,8 @@ SRC_FILES := $(wildcard src/mkdocstrings_handlers/python_xref/*.py) $(PYTHON_VER
 # Env names
 DEV_ENV := mkxref-dev
 
-# Whether to run targets in current env or explicitly in $(DEV_ENV)
-CURR_ENV_BASENAME := $(shell basename $(CONDA_PREFIX))
-ifeq ($(CURR_ENV_BASENAME), $(DEV_ENV))
-	CONDA_RUN :=
-else
-	CONDA_RUN := conda run -n $(DEV_ENV) --no-capture-output
-endif
+PIXI_RUN := pixi run
+CONDA_RUN := $(PIXI_RUN)
 
 # Testing args
 PYTEST_ARGS :=

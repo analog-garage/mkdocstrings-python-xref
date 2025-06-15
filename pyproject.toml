@@ -44,7 +44,7 @@ dev = [
     "ruff >=0.4.10",
     "beautifulsoup4 >=4.12",
     "black >=23.12",
-    "mike >=1.1,<2.0",
+    "mike >=1.1",
     "mkdocs >=1.5.3,<2.0",
     "mkdocs-material >=9.5.4",
     "linkchecker >=10.4"
@@ -54,6 +54,23 @@ dev = [
 name = "mkxref-dev"
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64", "win-64"]
+
+[tool.pixi.dependencies]
+# Use conda for these in pixi
+mkdocstrings-python ="*"
+griffe ="*"
+hatchling = "*"
+python-build = "*"
+coverage ="*"
+pytest ="*"
+pytest-cov ="*"
+mypy ="*"
+ruff = "*"
+black = "*"
+mike = "*"
+mkdocs = "*"
+mkdocs-material = "*"
+linkchecker = "*"
 
 [tool.pixi.pypi-dependencies]
 mkdocstrings-python-xref = { path = ".", editable = true }
@@ -216,6 +233,9 @@ coverage = "pytest -ra --cov --cov-report=html --cov-report=term -- tests"
 coverage-show = "python -m webbrowser file://$PIXI_PROJECT_ROOT/htmlcov/index.html"
 
 # doc tasks
+docs = {depends-on = ["doc"]}
+show-doc = "mkdocs serve -f mkdocs.yml"
+show-docs = {depends-on = ["show-doc"]}
 
 # cleanup tasks
 clean-build = "rm -rf build dist"
@@ -245,3 +265,7 @@ cmd = "whl2conda convert dist/*.whl -w dist --overwrite"
 depends-on = ["build-wheel"]
 inputs = ["dist/mkdocstrings_python_xref-$VERSION-py3-none-any.whl"]
 
+[tool.pixi.tasks.doc]
+cmd = "mkdocs build -f mkdocs.yml"
+inputs = ["docs/*.md", "docs/*.svg", "mkdocs.yml"]
+outputs = ["site/*.html"]
