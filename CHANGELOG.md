@@ -3,6 +3,13 @@
 *Note that versions roughly correspond to the version of mkdocstrings-python that they 
 are compatible with.*
 
+## 1.16.3
+
+* Added `check_crossrefs_exclude` config option 
+* Fix for [issue 43](https://github.com/analog-garage/mkdocstrings-python-xref/issues/43)
+
+Thanks to [@thetianshuhuang](https://github.com/thetianshuhuang)!
+
 ## 1.16.2
 
 * Improved source locations for errors in docstrings now including column numbers
