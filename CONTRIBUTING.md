@@ -1,29 +1,25 @@
 # Contributing to mkdocstrings-python-xref
 
+This project's environment and developemtn tasks are managed using [pixi] 
+(previously it used conda and make). 
+
 ## Prerequisites
 
-* conda must be installed on your machine
-* make should be installed in your base conda environment
+* [install pixi][pixi-install]
 
-## Development install
+## Development setup
 
-To (re)create a conda development environment for this project run:
-
-```
-make createdev
-conda activate mkxref-dev
-```
-
-After you have created the environment for the first time, you can configure your IDE
-to use that for this project.
-
-To update the environment after pulling or modifying project dependencies, you can use
+To (re)create a pixi development environment for this project, from inside
+the source tree run:
 
 ```
-make updatedev
+pixi reinstall
 ```
 
-This is just an optimization. If it does not work (e.g. can happen when switching to an old branch), just use `createdev`.
+This is actually optional, since pixi will automatically install the
+environment the first time you run a command. 
+
+See `pixi task list` for a list of available tasks.
 
 ## Versioning
 
@@ -32,3 +28,5 @@ The versions will generally track the version of [mkdocstrings_python][] on whic
 [mkdocstrings_python]: https://github.com/mkdocstrings/python
 
 
+[pixi]: https://pixi.sh/latest/
+[pixi-install]: https://pixi.sh/latest/installation/

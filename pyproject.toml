@@ -33,6 +33,51 @@ dependencies = [
 Repository = "https://github.com/analog-garage/mkdocstrings-python-xref"
 Documentation = "https://analog-garage.github.io/mkdocstrings-python-xref/"
 
+[project.optional-dependencies]
+dev = [
+    "build >=1.0.0", # python-build on conda
+    "hatchling >=1.21",
+    "coverage >=7.4.0",
+    "pytest >=8.2",
+    "pytest-cov >=5.0",
+    "mypy >=1.10",
+    "ruff >=0.4.10",
+    "beautifulsoup4 >=4.12",
+    "black >=23.12",
+    "mike >=1.1",
+    "mkdocs >=1.5.3,<2.0",
+    "mkdocs-material >=9.5.4",
+    "linkchecker >=10.4"
+]
+
+[tool.pixi.workspace]
+name = "mkxref-dev"
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "linux-64", "win-64"]
+
+[tool.pixi.dependencies]
+# Use conda for these in pixi
+mkdocstrings-python ="*"
+griffe ="*"
+hatchling = "*"
+python-build = "*"
+coverage ="*"
+pytest ="*"
+pytest-cov ="*"
+mypy ="*"
+ruff = "*"
+black = "*"
+mike = "*"
+mkdocs = "*"
+mkdocs-material = "*"
+linkchecker = "*"
+
+[tool.pixi.pypi-dependencies]
+mkdocstrings-python-xref = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = {features = ["dev"]}
+
 [tool.hatch.version]
 path = "src/mkdocstrings_handlers/python_xref/VERSION"
 pattern = "\\s*(?P<version>[\\w.]*)"
@@ -174,3 +219,53 @@ disable = [
     "wrong-spelling-in-comment",
     "wrong-spelling-in-docstring",
 ]
+
+[tool.pixi.tasks]
+# linting tasks
+mypy = "mypy"
+ruff = "ruff check src/mkdocstrings_handlers tests"
+lint = {depends-on = ["ruff", "mypy"]}
+
+# testing tasks
+pytest = "pytest -sv -ra tests"
+test = {depends-on = ["pytest", "lint"]}
+coverage = "pytest -ra --cov --cov-report=html --cov-report=term -- tests"
+coverage-show = "python -m webbrowser file://$PIXI_PROJECT_ROOT/htmlcov/index.html"
+
+# doc tasks
+docs = {depends-on = ["doc"]}
+show-doc = "mkdocs serve -f mkdocs.yml"
+show-docs = {depends-on = ["show-doc"]}
+
+# cleanup tasks
+clean-build = "rm -rf build dist"
+clean-coverage = "rm -rf .coverage .coverage.* htmlcov"
+clean-docs = "rm -rf site"
+clean-test = "rm -rf .pytest_cache .mypy_cache .ruff_cache"
+clean = {depends-on = ["clean-build", "clean-coverage", "clean-test"]}
+
+# build tasks
+build = {depends-on = ["build-wheel", "build-sdist", "build-conda"]}
+
+[tool.pixi.tasks.build-wheel]
+env = {VERSION = "$(cat src/mkdocstrings_handlers/python_xref/VERSION)"}
+cmd = "pip wheel . --no-deps --no-build-isolation -w dist"
+inputs = ["pyproject.toml", "LICENSE.md", "src/**/*"]
+outputs = ["dist/mkdocstrings_python_xref-$VERSION-py3-none-any.whl"]
+
+[tool.pixi.tasks.build-sdist]
+env = {VERSION = "$(cat src/mkdocstrings_handlers/python_xref/VERSION)"}
+cmd = "python -m build --sdist --no-isolation --outdir dist"
+inputs = ["pyproject.toml", "LICENSE.md", "src/**/*"]
+outputs = ["dist/mkdocstrings_python_xref-$VERSION.tar.gz"]
+
+[tool.pixi.tasks.build-conda]
+#env = {VERSION = "$(cat src/mkdocstrings_handlers/python_xref/VERSION)"}
+cmd = "whl2conda convert dist/*.whl -w dist --overwrite"
+depends-on = ["build-wheel"]
+inputs = ["dist/mkdocstrings_python_xref-$VERSION-py3-none-any.whl"]
+
+[tool.pixi.tasks.doc]
+cmd = "mkdocs build -f mkdocs.yml"
+inputs = ["docs/*.md", "docs/*.svg", "mkdocs.yml"]
+outputs = ["site/*.html"]
