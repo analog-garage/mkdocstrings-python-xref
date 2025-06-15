@@ -14,7 +14,6 @@ dependencies:
   - coverage >=7.4.0
   - pytest >=8.2
   - pytest-cov >=5.0
-  - pylint >=3.0.3
   - mypy >=1.10
   - ruff >=0.4.10
   - beautifulsoup4 >=4.12
@@ -24,4 +23,3 @@ dependencies:
   - mkdocs >=1.5.3,<2.0
   - mkdocs-material >=9.5.4
   - linkchecker >=10.4
-  - pydantic >=2.0
