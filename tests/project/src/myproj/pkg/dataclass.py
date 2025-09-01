@@ -1,3 +1,6 @@
+"""
+Dataclass example
+"""
 
 from dataclasses import dataclass, field
 
@@ -18,5 +21,5 @@ class Dataclass:
     example: [`content`][(c).]
     """
 
-    def method(self) -> str:
+    def method(self) -> None:
         """Example method."""

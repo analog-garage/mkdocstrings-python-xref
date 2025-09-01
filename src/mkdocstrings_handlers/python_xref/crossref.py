@@ -318,7 +318,10 @@ class _RelativeCrossrefProcessor:
         self._ok = just_warn
 
 
-def substitute_relative_crossrefs(obj: Object, checkref: Optional[Callable[[str], bool]] = None) -> None:
+def substitute_relative_crossrefs(
+    obj: Alias|Object,
+    checkref: Optional[Callable[[str], bool]] = None,
+) -> None:
     """Recursively expand relative cross-references in all docstrings in tree.
 
     Arguments:
@@ -326,20 +329,21 @@ def substitute_relative_crossrefs(obj: Object, checkref: Optional[Callable[[str]
         checkref: optional function to check whether computed cross-reference is valid.
             Should return True if valid, False if not valid.
     """
+    if isinstance(obj, Alias):
+        try:
+            obj = obj.target
+        except GriffeError:
+            # If alias could not be resolved, it probably refers
+            # to an external package, not be documented.
+            return
+
     doc = obj.docstring
 
     if doc is not None:
         doc.value = _RE_CROSSREF.sub(_RelativeCrossrefProcessor(doc, checkref=checkref), doc.value)
 
     for member in obj.members.values():
-        if isinstance(member, Alias):
-            try:
-                member = member.target
-            except GriffeError as ex:
-                # If alias could not be resolved, it probably refers
-                # to an external package, not be documented.
-                pass
-        if isinstance(member, Object):  # pragma: no branch
+        if isinstance(member, (Alias,Object)):  # pragma: no branch
             substitute_relative_crossrefs(member, checkref=checkref)
 
 def doc_value_offset_to_location(doc: Docstring, offset: int) -> tuple[int,int]:

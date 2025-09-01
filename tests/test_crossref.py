@@ -267,6 +267,11 @@ def test_doc_value_offset_to_location() -> None:
     assert doc_value_offset_to_location(doc3, 6) == (3, 3)
 
 def test_griffe() -> None:
+    """
+    Test substitution on griffe rep of local project
+    Returns:
+
+    """
     this_dir = Path(__file__).parent
     test_src_dir  = this_dir / "project" / "src"
     myproj = griffe.load(
@@ -274,4 +279,4 @@ def test_griffe() -> None:
         search_paths = [ test_src_dir ],
     )
     substitute_relative_crossrefs(myproj)
-    print(myproj)
+    # TODO - grovel output
