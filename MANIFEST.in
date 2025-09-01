@@ -1,5 +1,0 @@
-# Including requirements via manifest.in allows:
-# - tox to find the same requirements file.
-# TODO - removes this if TOX support is dropped or other way
-#   to tell tox to include this
-include runtime-env.yml

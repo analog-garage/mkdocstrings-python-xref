@@ -71,6 +71,7 @@ mike = "*"
 mkdocs = "*"
 mkdocs-material = "*"
 linkchecker = "*"
+twine = "*"
 
 [tool.pixi.pypi-dependencies]
 mkdocstrings-python-xref = { path = ".", editable = true }
@@ -222,30 +223,73 @@ disable = [
 
 [tool.pixi.tasks]
 # linting tasks
-mypy = "mypy"
-ruff = "ruff check src/mkdocstrings_handlers tests"
-lint = {depends-on = ["ruff", "mypy"]}
+[tool.pixi.tasks.mypy]
+description = "Run mypy type checking"
+cmd = "mypy"
+
+[tool.pixi.tasks.ruff]
+description = "Run ruff linting on source code and tests"
+cmd = "ruff check src/mkdocstrings_handlers tests"
+
+[tool.pixi.tasks.lint]
+description = "Run all linting tasks (ruff and mypy)"
+depends-on = ["ruff", "mypy"]
 
 # testing tasks
-pytest = "pytest -sv -ra tests"
-test = {depends-on = ["pytest", "lint"]}
-coverage = "pytest -ra --cov --cov-report=html --cov-report=term -- tests"
-coverage-show = "python -m webbrowser file://$PIXI_PROJECT_ROOT/htmlcov/index.html"
+[tool.pixi.tasks.pytest]
+description = "Run pytest with verbose output"
+cmd = "pytest -sv -ra tests"
+
+[tool.pixi.tasks.test]
+description = "Run tests and linting"
+depends-on = ["pytest", "lint"]
+
+[tool.pixi.tasks.coverage]
+description = "Run tests with coverage reporting"
+cmd = "pytest -ra --cov --cov-report=html --cov-report=term -- tests"
+
+[tool.pixi.tasks.coverage-show]
+description = "Open coverage report in web browser"
+cmd = "python -m webbrowser file://$PIXI_PROJECT_ROOT/htmlcov/index.html"
 
 # doc tasks
-docs = {depends-on = ["doc"]}
-show-doc = "mkdocs serve -f mkdocs.yml"
-show-docs = {depends-on = ["show-doc"]}
+[tool.pixi.tasks.docs]
+description = "Build documentation"
+depends-on = ["doc"]
+
+[tool.pixi.tasks.show-doc]
+description = "Serve documentation locally with live reload"
+cmd = "mkdocs serve -f mkdocs.yml"
+
+[tool.pixi.tasks.show-docs]
+description = "Serve documentation locally (alias for show-doc)"
+depends-on = ["show-doc"]
 
 # cleanup tasks
-clean-build = "rm -rf build dist"
-clean-coverage = "rm -rf .coverage .coverage.* htmlcov"
-clean-docs = "rm -rf site"
-clean-test = "rm -rf .pytest_cache .mypy_cache .ruff_cache"
-clean = {depends-on = ["clean-build", "clean-coverage", "clean-test"]}
+[tool.pixi.tasks.clean-build]
+description = "Remove build and distribution artifacts"
+cmd = "rm -rf build dist"
+
+[tool.pixi.tasks.clean-coverage]
+description = "Remove coverage reports and cache files"
+cmd = "rm -rf .coverage .coverage.* htmlcov"
+
+[tool.pixi.tasks.clean-docs]
+description = "Remove generated documentation site"
+cmd = "rm -rf site"
+
+[tool.pixi.tasks.clean-test]
+description = "Remove test and linting cache directories"
+cmd = "rm -rf .pytest_cache .mypy_cache .ruff_cache"
+
+[tool.pixi.tasks.clean]
+description = "Remove all build, coverage, and test artifacts"
+depends-on = ["clean-build", "clean-coverage", "clean-test"]
 
 # build tasks
-build = {depends-on = ["build-wheel", "build-sdist", "build-conda"]}
+[tool.pixi.tasks.build]
+description = "Build all package formats (wheel, sdist, conda)"
+depends-on = ["build-wheel", "build-sdist", "build-conda"]
 
 [tool.pixi.tasks.build-wheel]
 env = {VERSION = "$(cat src/mkdocstrings_handlers/python_xref/VERSION)"}
@@ -254,18 +298,71 @@ inputs = ["pyproject.toml", "LICENSE.md", "src/**/*"]
 outputs = ["dist/mkdocstrings_python_xref-$VERSION-py3-none-any.whl"]
 
 [tool.pixi.tasks.build-sdist]
-env = {VERSION = "$(cat src/mkdocstrings_handlers/python_xref/VERSION)"}
 cmd = "python -m build --sdist --no-isolation --outdir dist"
 inputs = ["pyproject.toml", "LICENSE.md", "src/**/*"]
-outputs = ["dist/mkdocstrings_python_xref-$VERSION.tar.gz"]
+outputs = ["dist/mkdocstrings_python_xref-*.tar.gz"]
 
 [tool.pixi.tasks.build-conda]
-#env = {VERSION = "$(cat src/mkdocstrings_handlers/python_xref/VERSION)"}
-cmd = "whl2conda convert dist/*.whl -w dist --overwrite"
+description = "Build conda package from wheel"
+env = {VERSION = "$(cat src/mkdocstrings_handlers/python_xref/VERSION)"}
+cmd = "whl2conda convert dist/mkdocstrings_python_xref-$VERSION-py3-none-any.whl -w dist --overwrite"
 depends-on = ["build-wheel"]
-inputs = ["dist/mkdocstrings_python_xref-$VERSION-py3-none-any.whl"]
+inputs = ["dist/mkdocstrings_python_xref-*-none-any.whl"]
+
+# upload tasks
+[tool.pixi.tasks.check-upload-wheel]
+description = "Check wheel package for upload readiness using twine"
+cmd = "twine check dist/*.whl"
+depends-on = ["build-wheel"]
+
+[tool.pixi.tasks.check-upload-sdist]
+description = "Check source distribution for upload readiness using twine"
+cmd = "twine check dist/*.tar.gz"
+depends-on = ["build-sdist"]
+
+[tool.pixi.tasks.check-upload]
+description = "Check all packages for upload readiness"
+depends-on = ["check-upload-sdist", "check-upload-wheel"]
+
+[tool.pixi.tasks.upload-wheel]
+description = "Upload wheel package to PyPI (skips existing versions)"
+cmd = "twine upload --skip-existing dist/*.whl"
+depends-on = ["check-upload-wheel"]
+
+[tool.pixi.tasks.upload-sdist]
+description = "Upload source distribution to PyPI (skips existing versions)"
+cmd = "twine upload --skip-existing dist/*.tar.gz"
+depends-on = ["check-upload-sdist"]
+
+[tool.pixi.tasks.upload]
+description = "Upload all packages to PyPI"
+depends-on = ["upload-sdist", "upload-wheel"]
 
 [tool.pixi.tasks.doc]
+description = "Build documentation site"
 cmd = "mkdocs build -f mkdocs.yml"
 inputs = ["docs/*.md", "docs/*.svg", "mkdocs.yml"]
 outputs = ["site/*.html"]
+
+[tool.pixi.tasks.doc-strict]
+description = "Build documentation and check for broken links"
+cmd = "linkchecker site"
+depends-on = ["doc"]
+inputs = ["site/**"]
+
+[tool.pixi.tasks.showdoc]
+description = "Serve documentation locally (alias for show-doc)"
+cmd = "mkdocs serve -f mkdocs.yml"
+
+[tool.pixi.tasks.doc-serve-all]
+description = "Serve all documentation versions using mike"
+cmd = "mike serve -F mkdocs.yml"
+
+[tool.pixi.tasks.doc-deploy]
+env = {VERSION = "$(cat src/mkdocstrings_handlers/python_xref/VERSION)"}
+description = "Deploy the current version to the gh-pages branch"
+cmd = "mike deploy -F mkdocs.yml -u $VERSION latest & mike set-default -u $VERSION latest"
+
+[tool.pixi.tasks.show-version]
+env = {VERSION = "$(cat src/mkdocstrings_handlers/python_xref/VERSION)"}
+cmd = "echo $VERSION"
