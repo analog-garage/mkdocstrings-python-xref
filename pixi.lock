@@ -1360,7 +1360,7 @@ packages:
 - pypi: ./
   name: mkdocstrings-python-xref
   version: 1.16.3
-  sha256: 07b578f8cb9e04ab7cbc2ec7e851cbcc4bb458056456d19c654b0dc4c87fdc4a
+  sha256: 9a8f66b0f5685e868a3ae1308a2f9a2c25eaf4649130730bea2be017e8ef7082
   requires_dist:
   - griffe>=1.0
   - mkdocstrings-python>=1.16.6,<2.0

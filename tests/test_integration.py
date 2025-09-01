@@ -36,7 +36,7 @@ def check_autorefs(autorefs: List[Any], cases: Dict[Tuple[str,str],str] ) -> Non
     Arguments:
         autorefs: list of autoref tags parsed from HTML
         cases: mapping from (<location>,<title>) to generated reference tag
-            where <location? is the qualified name of the object whose doc string
+            where <location> is the qualified name of the object whose doc string
             contains the cross-reference, and <title> is the text in the cross-reference.
     """
     cases = cases.copy()
@@ -123,4 +123,17 @@ def test_integration(tmpdir: PathLike) -> None:
         }
     )
 
+    pkg_html = site_dir.joinpath('pkg', 'index.html').read_text()
+    pkg_bs = bs4.BeautifulSoup(pkg_html, 'html.parser')
 
+    autorefs = pkg_bs.find_all('a', attrs={'class':'autorefs'})
+    assert len(autorefs) >= 3
+
+    check_autorefs(
+        autorefs,
+        {
+            ('myproj.pkg.Dataclass', 'content') : '#myproj.pkg.Dataclass.content',
+            ('myproj.pkg.Dataclass', 'method') : '#myproj.pkg.Dataclass.method',
+            ('myproj.pkg.Dataclass.duration', 'content') : '#myproj.pkg.Dataclass.content',
+        }
+    )

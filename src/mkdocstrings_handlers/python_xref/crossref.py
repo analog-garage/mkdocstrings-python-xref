@@ -20,7 +20,7 @@ import re
 import sys
 from typing import Any, Callable, List, Optional, cast
 
-from griffe import Docstring, Object
+from griffe import Alias, Docstring, GriffeError, Object
 from mkdocstrings import get_logger
 
 __all__ = [
@@ -332,6 +332,13 @@ def substitute_relative_crossrefs(obj: Object, checkref: Optional[Callable[[str]
         doc.value = _RE_CROSSREF.sub(_RelativeCrossrefProcessor(doc, checkref=checkref), doc.value)
 
     for member in obj.members.values():
+        if isinstance(member, Alias):
+            try:
+                member = member.target
+            except GriffeError as ex:
+                # If alias could not be resolved, it probably refers
+                # to an external package, not be documented.
+                pass
         if isinstance(member, Object):  # pragma: no branch
             substitute_relative_crossrefs(member, checkref=checkref)
 
