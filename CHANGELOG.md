@@ -3,6 +3,10 @@
 *Note that versions roughly correspond to the version of mkdocstrings-python that they 
 are compatible with.*
 
+## 1.16.4
+
+* Fix handling of aliases (see bug #47)
+
 ## 1.16.3
 
 * Added `check_crossrefs_exclude` config option 

@@ -15,6 +15,13 @@
 A module
 """
 
+from .dataclass import Dataclass
+
+__all__ = [
+    "Dataclass",
+    "func",
+]
+
 def func() -> None:
     """
     A function

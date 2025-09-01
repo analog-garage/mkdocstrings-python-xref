@@ -23,6 +23,7 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Callable, Optional
 
+import griffe
 import pytest
 from griffe import Class, Docstring, Function, Module, Object, LinesCollection
 
@@ -264,3 +265,18 @@ def test_doc_value_offset_to_location() -> None:
 
     assert doc_value_offset_to_location(doc3, 0) == (2, 5)
     assert doc_value_offset_to_location(doc3, 6) == (3, 3)
+
+def test_griffe() -> None:
+    """
+    Test substitution on griffe rep of local project
+    Returns:
+
+    """
+    this_dir = Path(__file__).parent
+    test_src_dir  = this_dir / "project" / "src"
+    myproj = griffe.load(
+        "myproj",
+        search_paths = [ test_src_dir ],
+    )
+    substitute_relative_crossrefs(myproj)
+    # TODO - grovel output

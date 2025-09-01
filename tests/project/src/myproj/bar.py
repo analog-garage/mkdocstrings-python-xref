@@ -21,6 +21,11 @@ from .foo import Foo
 class Bar(Foo):
     """See [bar][.] method."""
 
+    attribute: str = "attribute"
+    """
+    See [`foo`][(c).]
+    """
+
     def bar(self) -> None:
         """This is in the [Bar][(c)] class.
         Also see the [foo][^.] method and the [func][(m).] function.

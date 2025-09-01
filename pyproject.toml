@@ -26,7 +26,7 @@ dynamic = ["version"]
 requires-python = ">=3.9"
 dependencies = [
     "mkdocstrings-python >=1.16.6,<2.0",
-    "griffe >=1.0"
+    "griffe >=1.0",
 ]
 
 [project.urls]
@@ -47,7 +47,7 @@ dev = [
     "mike >=1.1",
     "mkdocs >=1.5.3,<2.0",
     "mkdocs-material >=9.5.4",
-    "linkchecker >=10.4"
+    "linkchecker >=10.4",
 ]
 
 [tool.pixi.workspace]
