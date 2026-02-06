@@ -1738,8 +1738,8 @@ packages:
   timestamp: 1748965218001
 - pypi: ./
   name: mkdocstrings-python-xref
-  version: 1.16.4
-  sha256: fcb8e760b689ad912bcffadf901d9984a3505913fd40b332b764877724e4d3a2
+  version: 1.16.5
+  sha256: 3f50d9a09fadaa223ffd98709a8027102555c96384e89637ad8c534d27e3f058
   requires_dist:
   - griffe>=1.0
   - mkdocstrings-python>=1.16.6,<2.0
@@ -1756,7 +1756,7 @@ packages:
   - pytest-cov>=5.0 ; extra == 'dev'
   - pytest>=8.2 ; extra == 'dev'
   - ruff>=0.4.10 ; extra == 'dev'
-  requires_python: '>=3.9'
+  requires_python: '>=3.10'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/noarch/more-itertools-10.7.0-pyhd8ed1ab_0.conda
   sha256: d0c2253dcb1da6c235797b57d29de688dabc2e48cc49645b1cff2b52b7907428

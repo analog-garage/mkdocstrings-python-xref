@@ -1,4 +1,4 @@
-#  Copyright (c) 2022-2025.   Analog Devices Inc.
+#  Copyright (c) 2022-2026.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ Implementation of python_xref handler
 from __future__ import annotations
 
 import re
-import sys
 from dataclasses import dataclass, field, fields
 from functools import partial
 from pathlib import Path
@@ -37,12 +36,7 @@ __all__ = [
 
 logger = get_logger(__name__)
 
-# TODO python 3.9 - remove when 3.9 support is dropped
-_dataclass_options = {"frozen": True}
-if sys.version_info >= (3, 10):
-    _dataclass_options["kw_only"] = True
-
-@dataclass(**_dataclass_options)
+@dataclass(frozen=True, kw_only=True)
 class PythonRelXRefOptions(PythonOptions):
     check_crossrefs: bool = True
     check_crossrefs_exclude: list[str | re.Pattern] = field(default_factory=list)
