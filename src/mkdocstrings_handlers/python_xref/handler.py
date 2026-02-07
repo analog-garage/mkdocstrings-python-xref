@@ -78,7 +78,7 @@ class PythonRelXRefHandler(PythonHandler):
         )
         return opts
 
-    def render(self, data: CollectorItem, options: PythonOptions) -> str:
+    def render(self, data: CollectorItem, options: PythonOptions, locale: str | None = None) -> str:
         if options.relative_crossrefs:
             if isinstance(options, PythonRelXRefOptions) and options.check_crossrefs:
                 checkref = partial(
@@ -88,7 +88,7 @@ class PythonRelXRefHandler(PythonHandler):
             substitute_relative_crossrefs(data, checkref=checkref)
 
         try:
-            return super().render(data, options)
+            return super().render(data, options, locale=locale)
         except Exception:  # pragma: no cover
             print(f"{data.path=}")
             raise
