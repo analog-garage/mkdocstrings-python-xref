@@ -3,6 +3,10 @@
 *Note that versions roughly correspond to the version of mkdocstrings-python that they 
 are compatible with.*
 
+## 2.0.0
+
+* Depend on mkdocstrings-python 2.0 or later
+
 ## 1.16.5
 
 * Drop python 3.9 support
