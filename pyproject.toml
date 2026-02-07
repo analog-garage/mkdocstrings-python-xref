@@ -13,17 +13,17 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Documentation",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 keywords = [
     "documentation-tool", "mkdocstrings", "mkdocstrings-handler", "python"
 ]
 dynamic = ["version"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "mkdocstrings-python >=1.16.6,<2.0",
     "griffe >=1.0",
@@ -36,7 +36,9 @@ Documentation = "https://analog-garage.github.io/mkdocstrings-python-xref/"
 [project.optional-dependencies]
 dev = [
     "build >=1.0.0", # python-build on conda
+    "pip >=25.0",
     "hatchling >=1.21",
+    "whl2conda >=25.3",
     "coverage >=7.4.0",
     "pytest >=8.2",
     "pytest-cov >=5.0",

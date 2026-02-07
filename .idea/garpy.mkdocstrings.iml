@@ -8,7 +8,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.tox" />
       <excludeFolder url="file://$MODULE_DIR$/.pixi" />
     </content>
-    <orderEntry type="jdk" jdkName="mkxref-dev" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="/Users/cbarber/ws/mkdocstrings-python-xref/.pixi/envs/default" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PackageRequirementsSettings">

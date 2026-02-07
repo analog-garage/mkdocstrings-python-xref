@@ -3,6 +3,10 @@
 *Note that versions roughly correspond to the version of mkdocstrings-python that they 
 are compatible with.*
 
+## 1.16.5
+
+* Drop python 3.9 support
+
 ## 1.16.4
 
 * Fix handling of aliases (see bug #47)
