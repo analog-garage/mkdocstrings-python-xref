@@ -34,9 +34,11 @@ Additional options are added by this extension. Currently, there are three:
             default_handler: python_xref
             handlers:
               python_xref:
-                import:
-                - https://docs.python.org/3/objects.inv
-                - https://pytorch.org/docs/stable/objects.inv
+                inventories:
+                - url: https://docs.python.org/3/objects.inv
+                  domains: [std, py]
+                - url: https://pytorch.org/docs/stable/objects.inv
+                  domains: [py]
                 options:
                   relative_crossrefs: yes
         ```
@@ -49,9 +51,11 @@ Additional options are added by this extension. Currently, there are three:
             default_handler: python_xref
             handlers:
               python_xref:
-                import:
-                - https://docs.python.org/3/objects.inv
-                - https://pytorch.org/docs/stable/objects.inv
+                inventories:
+                - url: https://docs.python.org/3/objects.inv
+                  domains: [std, py]
+                - url: https://pytorch.org/docs/stable/objects.inv
+                  domains: [py]
                 options:
                   relative_crossrefs: yes
                   check_crossrefs_exclude:
@@ -66,9 +70,11 @@ Additional options are added by this extension. Currently, there are three:
             default_handler: python_xref
             handlers:
               python_xref:
-                import:
-                - https://docs.python.org/3/objects.inv
-                - https://pytorch.org/docs/stable/objects.inv
+                inventories:
+                - url: https://docs.python.org/3/objects.inv
+                  domains: [std, py]
+                - url: https://pytorch.org/docs/stable/objects.inv
+                  domains: [py]
                 options:
                   relative_crossrefs: yes
                   check_crossrefs: no
