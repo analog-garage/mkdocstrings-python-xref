@@ -5,7 +5,7 @@ are compatible with.*
 
 ## 2.0.0
 
-* Depend on mkdocstrings-python 2.0 or later
+* Depends on mkdocstrings-python >=2.0 and mkdocstrings >=1.0
 
 ## 1.16.5
 

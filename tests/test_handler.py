@@ -1,4 +1,4 @@
-#  Copyright (c) 2022-2025.   Analog Devices Inc.
+#  Copyright (c) 2022-2026.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -58,6 +58,8 @@ def test_handler(tmpdir: PathLike,
         Path(tmpdir),
         theme = 'material',
         custom_templates = 'custom_templates',
+        mdx = [],
+        mdx_config= {},
     )
     assert handler.name == 'python_xref'
 
@@ -83,7 +85,7 @@ def test_handler(tmpdir: PathLike,
             return Object(identifier)
         raise CollectionError(identifier)
 
-    def fake_render(_self: PythonHandler, data: Object, _config: dict) -> str:
+    def fake_render(_self: PythonHandler, data: Object, _config: dict, locale: str|None = None) -> str:
         assert data.docstring is not None
         return data.docstring.value
 
