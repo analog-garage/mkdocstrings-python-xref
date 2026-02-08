@@ -5,6 +5,14 @@ fully qualified or is empty, in which case it is taken from the title.
 If you work with long package and class names or with namespace packages, this can result in a lot
 of extra typing and harder to read doc-strings.
 
+
+!!! note "Difference with mkdocstrings-python"
+
+    [mkdoctrings-python release 1.19](https://github.com/mkdocstrings/python/releases/tag/1.19.0)
+    introduced support for relative (and also scoped) cross-references, but does not
+    support the full range of relative syntax supported by this handler. Specifically,
+    the standard handler only supports the leading `.` syntax described here.
+
 If you enable the `relative_crossrefs` option in the `python_xref` handler options
 in your mkdocs.yml file ([see configuration](config.md) for an example), then the handler 
 will support more compact relative syntax:
