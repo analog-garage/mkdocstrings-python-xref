@@ -3,6 +3,10 @@
 *Note that versions roughly correspond to the version of mkdocstrings-python that they 
 are compatible with.*
 
+## 2.0.1
+
+* Fix extended template configuration (#56)
+
 ## 2.0.0
 
 * Depends on mkdocstrings-python >=2.0 and mkdocstrings >=1.0

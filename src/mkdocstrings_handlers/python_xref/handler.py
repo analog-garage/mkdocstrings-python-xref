@@ -95,9 +95,16 @@ class PythonRelXRefHandler(PythonHandler):
 
     def get_templates_dir(self, handler: Optional[str] = None) -> Path:
         """See [render][.barf]"""
+        # use same templates as standard python handler
         if handler == self.name:
             handler = 'python'
         return super().get_templates_dir(handler)
+
+    def get_extended_templates_dirs(self, handler: str) -> list[Path]:
+        # use same templates as standard python handler
+        if handler == self.name:
+            handler = 'python'
+        return super().get_extended_templates_dirs(handler)
 
     def _check_ref(self, ref : str, exclude: list[str | re.Pattern] = []) -> bool:
         """Check for existence of reference"""
