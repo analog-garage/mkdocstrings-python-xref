@@ -29,7 +29,7 @@ Additional options are added by this extension:
     a unified diff patch file that converts incompatible cross-references to the standard
     dot-prefix form. The patch file is overwritten on each build. If no incompatibilities are
     found, any existing patch file is removed. The generated patch can be applied with
-    `git apply` or `patch -p1`.
+    `git apply <patch-file>` or `patch -p1 -i <patch-file>`.
 
 !!! Example "mkdocs.yml plugins specifications using this handler"
 
