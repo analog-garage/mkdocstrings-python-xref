@@ -17,16 +17,36 @@ from __future__ import annotations
 
 import ast
 import re
+from dataclasses import dataclass, field
 from typing import Callable, List, Optional, cast
 
 from griffe import Alias, Docstring, GriffeError, Object
 from mkdocstrings import get_logger
 
 __all__ = [
-    "substitute_relative_crossrefs"
+    "IncompatibleRef",
+    "substitute_relative_crossrefs",
 ]
 
 logger = get_logger(__name__)
+
+
+@dataclass
+class IncompatibleRef:
+    """Record of a cross-reference using xref-only syntax."""
+
+    filepath: str
+    """Source file path."""
+    line: int
+    """Line number in source file (1-based)."""
+    col: int
+    """Column number in source file (1-based)."""
+    original: str
+    """Original cross-reference text, e.g. ``[title][ref]``."""
+    replacement: str
+    """Standard-compatible replacement text."""
+    reasons: list[str] = field(default_factory=list)
+    """Description of incompatible syntax elements found."""
 
 def _re_or(*exps: str) -> str:
     """Construct an "or" regular expression from a sequence of regular expressions.
@@ -116,8 +136,15 @@ class _RelativeCrossrefProcessor:
     _cur_ref_parts: List[str]
     _ok: bool
     _check_ref: Callable[[str], bool]
+    _incompatible_refs: list[IncompatibleRef] | None
+    _cur_incompat_reasons: list[str]
 
-    def __init__(self, doc: Docstring, checkref: Optional[Callable[[str], bool]] = None):
+    def __init__(
+        self,
+        doc: Docstring,
+        checkref: Optional[Callable[[str], bool]] = None,
+        incompatible_refs: Optional[list[IncompatibleRef]] = None,
+    ):
         self._doc = doc
         self._cur_match = None
         self._cur_input = ""
@@ -125,6 +152,8 @@ class _RelativeCrossrefProcessor:
         self._cur_ref_parts = []
         self._check_ref = checkref or _always_ok
         self._ok = True
+        self._incompatible_refs = incompatible_refs
+        self._cur_incompat_reasons = []
 
     def __call__(self, match: re.Match) -> str:
         """
@@ -138,28 +167,32 @@ class _RelativeCrossrefProcessor:
 
         title = match[1]
         ref = match[2]
+        original_ref = ref
 
         checkref = self._check_ref
-        if ref.startswith("?"):
+        has_question_prefix = ref.startswith("?")
+        if has_question_prefix:
             # Turn off cross-ref check
             ref = ref[1:]
             checkref = _always_ok
+            self._add_incompat_reason("leading '?' suppresses reference checking")
 
         new_ref = ""
-
-        # TODO support special syntax to turn off checking
+        std_ref_parts: list[str] = []
 
         if not _RE_REL_CROSSREF.fullmatch(match.group(0)):
             # Just a regular cross reference
             new_ref = ref if ref else title
+            if has_question_prefix:
+                std_ref_parts.append(ref if ref else title)
         else:
             ref_match = _RE_REL.fullmatch(ref)
             if ref_match is None:
                 self._error(f"Bad syntax in relative cross reference: '{ref}'")
             else:
-                self._process_parent_specifier(ref_match)
-                self._process_relname(ref_match)
-                self._process_append_from_title(ref_match, title)
+                self._process_parent_specifier(ref_match, std_ref_parts)
+                self._process_relname(ref_match, std_ref_parts)
+                self._process_append_from_title(ref_match, title, std_ref_parts)
 
             if self._ok:
                 new_ref = '.'.join(self._cur_ref_parts)
@@ -177,6 +210,13 @@ class _RelativeCrossrefProcessor:
         else:
             result = match.group(0)
 
+        # Record incompatibility if any xref-only syntax was found
+        if self._cur_incompat_reasons and self._incompatible_refs is not None and self._ok:
+            std_ref = _assemble_std_ref(std_ref_parts) if std_ref_parts else new_ref
+            self._record_incompatible_ref(
+                match, original_ref, f"[{title}][{std_ref}]"
+            )
+
         return result
 
     def _start_match(self, match: re.Match) -> None:
@@ -185,21 +225,57 @@ class _RelativeCrossrefProcessor:
         self._cur_input = match[0]
         self._ok = True
         self._cur_ref_parts.clear()
+        self._cur_incompat_reasons.clear()
 
-    def _process_relname(self, ref_match: re.Match) -> None:
+    def _add_incompat_reason(self, reason: str) -> None:
+        """Record an incompatibility reason for the current match."""
+        self._cur_incompat_reasons.append(reason)
+
+    def _record_incompatible_ref(
+        self, match: re.Match, original_ref: str, replacement: str,
+    ) -> None:
+        """Record an incompatible cross-reference."""
+        if self._incompatible_refs is None:
+            return
+        doc = self._doc
+        parent = doc.parent
+        filepath = str(parent.filepath) if parent is not None else "<unknown>"
+        line, col = doc_value_offset_to_location(doc, self._cur_offset)
+        self._incompatible_refs.append(IncompatibleRef(
+            filepath=filepath,
+            line=line,
+            col=col,
+            original=match.group(0),
+            replacement=replacement,
+            reasons=list(self._cur_incompat_reasons),
+        ))
+
+    def _process_relname(self, ref_match: re.Match, std_ref_parts: list[str]) -> None:
         relname = ref_match.group("relname").strip(".")
         if relname:
             self._cur_ref_parts.append(relname)
+            std_ref_parts.append(relname)
 
-    def _process_append_from_title(self, ref_match: re.Match, title_text: str) -> None:
+    def _process_append_from_title(
+        self, ref_match: re.Match, title_text: str, std_ref_parts: list[str],
+    ) -> None:
         if ref_match.group(0).endswith("."):
             id_from_title = title_text.strip("`*")
             if not _RE_ID.fullmatch(id_from_title):
                 self._error(f"Relative cross reference text is not a qualified identifier: '{id_from_title}'")
                 return
             self._cur_ref_parts.append(id_from_title)
+            # Trailing '.' after a name is xref-only "append title" syntax.
+            # After non-alphanumeric (e.g. ')' in (m).) it's just a separator
+            # absorbed by the dot prefix in standard form.
+            ref_text = ref_match.group(0)
+            if len(ref_text) >= 2 and ref_text[-2].isalnum():
+                self._add_incompat_reason("trailing '.' appends title to reference")
+                std_ref_parts.append(id_from_title)
 
-    def _process_parent_specifier(self, ref_match: re.Match) -> None:
+    def _process_parent_specifier(
+        self, ref_match: re.Match, std_ref_parts: list[str],
+    ) -> None:
         if not ref_match.group("parent"):
             return
 
@@ -209,17 +285,19 @@ class _RelativeCrossrefProcessor:
             return
 
         rel_obj = (
-            self._process_current_specifier(obj, ref_match)
-            or self._process_class_specifier(obj, ref_match)
-            or self._process_module_specifier(obj, ref_match)
-            or self._process_package_specifier(obj, ref_match)
-            or self._process_up_specifier(obj, ref_match)
+            self._process_current_specifier(obj, ref_match, std_ref_parts)
+            or self._process_class_specifier(obj, ref_match, std_ref_parts)
+            or self._process_module_specifier(obj, ref_match, std_ref_parts)
+            or self._process_package_specifier(obj, ref_match, std_ref_parts)
+            or self._process_up_specifier(obj, ref_match, std_ref_parts)
         )
 
         if rel_obj is not None and self._ok:
             self._cur_ref_parts.append(rel_obj.canonical_path)
 
-    def _process_current_specifier(self, obj: Object, ref_match: re.Match) -> Optional[Object]:
+    def _process_current_specifier(
+        self, obj: Object, ref_match: re.Match, std_ref_parts: list[str],
+    ) -> Optional[Object]:
         rel_obj: Object | None = None
         if ref_match.group("current"):
             if obj.is_function:
@@ -229,43 +307,64 @@ class _RelativeCrossrefProcessor:
                 )
             else:
                 rel_obj = obj
+                std_ref_parts.append('.')
         return rel_obj
 
-    def _process_class_specifier(self, obj: Object, ref_match: re.Match) -> Optional[Object]:
+    def _process_class_specifier(
+        self, obj: Object, ref_match: re.Match, std_ref_parts: list[str],
+    ) -> Optional[Object]:
         rel_obj: Object | None = None
         if ref_match.group("class"):
             rel_obj = obj
+            levels = 0
             while not rel_obj.is_class:
                 rel_obj = rel_obj.parent
+                levels += 1
                 if rel_obj is None:
                     self._error(f"{obj.canonical_path} not in a class")
                     break
+            if rel_obj is not None:
+                self._add_incompat_reason("'(c)' class specifier")
+                std_ref_parts.append('.' * (levels + 1))
         return rel_obj
 
-    def _process_module_specifier(self, obj: Object, ref_match: re.Match) -> Optional[Object]:
+    def _process_module_specifier(
+        self, obj: Object, ref_match: re.Match, std_ref_parts: list[str],
+    ) -> Optional[Object]:
         rel_obj: Object | None = None
         if ref_match.group("module"):
             rel_obj = obj
+            levels = 0
             while not rel_obj.is_module:
                 rel_obj = rel_obj.parent
+                levels += 1
                 if rel_obj is None:  # pragma: no cover
                     self._error(f"{obj.canonical_path} not in a module!")
                     break
+            if rel_obj is not None:
+                self._add_incompat_reason("'(m)' module specifier")
+                std_ref_parts.append('.' * (levels + 1))
         return rel_obj
 
-    def _process_package_specifier(self, obj: Object, ref_match: re.Match) -> Optional[Object]:
+    def _process_package_specifier(
+        self, obj: Object, ref_match: re.Match, std_ref_parts: list[str],
+    ) -> Optional[Object]:
         # griffe does not distinguish between modules and packages, so we identify a package
         # as a module that contains other modules. A module that has no parent is considered to
         # be a package even if it does not contain modules.
         rel_obj: Object | None = None
         if ref_match.group("package"):
             rel_obj = obj
+            levels = 0
             if rel_obj.is_module and rel_obj.modules:
                 # module contains modules, so it is a package
+                self._add_incompat_reason("'(p)' package specifier")
+                std_ref_parts.append('.' * (levels + 1))
                 return rel_obj
 
             while not rel_obj.is_module:
                 rel_obj = rel_obj.parent
+                levels += 1
                 if rel_obj is None:  # pragma: no cover
                     self._error(f"{obj.canonical_path} not in a module!")
                     break
@@ -273,20 +372,34 @@ class _RelativeCrossrefProcessor:
             if rel_obj is not None and rel_obj.parent is not None:  # pragma: no branch
                 # If module has no parent, we will treat it as a package
                 rel_obj = rel_obj.parent
+                levels += 1
+
+            if rel_obj is not None:
+                self._add_incompat_reason("'(p)' package specifier")
+                std_ref_parts.append('.' * (levels + 1))
 
         return rel_obj
 
-    def _process_up_specifier(self, obj: Object, ref_match: re.Match) -> Optional[Object]:
+    def _process_up_specifier(
+        self, obj: Object, ref_match: re.Match, std_ref_parts: list[str],
+    ) -> Optional[Object]:
         rel_obj: Object | None = None
         if ref_match.group("up"):
-            level = len(ref_match.group("up"))
+            up_text = ref_match.group("up")
+            level = len(up_text)
+            uses_caret = '^' in up_text
             rel_obj = obj
             for _ in range(level):
                 if rel_obj.parent is not None:
                     rel_obj = rel_obj.parent
                 else:
-                    self._error(f"'{ref_match.group('up')}' has too many levels for {obj.canonical_path}")
+                    self._error(f"'{up_text}' has too many levels for {obj.canonical_path}")
                     break
+            if rel_obj is not None:
+                if uses_caret:
+                    self._add_incompat_reason("'^' caret specifier")
+                # Standard dot-prefix equivalent: level+1 dots
+                std_ref_parts.append('.' * (level + 1))
         return rel_obj
 
     def _error(self, msg: str, just_warn: bool = False) -> None:
@@ -317,9 +430,27 @@ class _RelativeCrossrefProcessor:
         self._ok = just_warn
 
 
+def _assemble_std_ref(parts: list[str]) -> str:
+    """Assemble a standard cross-reference from parts.
+
+    The first element may be a dot-prefix (e.g., ``..``), which is concatenated
+    directly with the remaining parts (joined by ``'.'``).
+    """
+    if not parts:
+        return ""
+    prefix = parts[0]
+    rest = parts[1:]
+    if prefix and all(c == '.' for c in prefix):
+        # Dot prefix: concatenate directly with rest
+        return prefix + '.'.join(rest)
+    # Regular name parts: join all with '.'
+    return '.'.join(parts)
+
+
 def substitute_relative_crossrefs(
     obj: Alias|Object,
     checkref: Optional[Callable[[str], bool]] = None,
+    incompatible_refs: Optional[list[IncompatibleRef]] = None,
 ) -> None:
     """Recursively expand relative cross-references in all docstrings in tree.
 
@@ -327,6 +458,8 @@ def substitute_relative_crossrefs(
         obj: a Griffe [Object][griffe.] whose docstrings should be modified
         checkref: optional function to check whether computed cross-reference is valid.
             Should return True if valid, False if not valid.
+        incompatible_refs: if provided, incompatible cross-references will be appended
+            to this list.
     """
     if isinstance(obj, Alias):
         try:
@@ -339,11 +472,18 @@ def substitute_relative_crossrefs(
     doc = obj.docstring
 
     if doc is not None:
-        doc.value = _RE_CROSSREF.sub(_RelativeCrossrefProcessor(doc, checkref=checkref), doc.value)
+        doc.value = _RE_CROSSREF.sub(
+            _RelativeCrossrefProcessor(
+                doc, checkref=checkref, incompatible_refs=incompatible_refs,
+            ),
+            doc.value,
+        )
 
     for member in obj.members.values():
         if isinstance(member, (Alias,Object)):  # pragma: no branch
-            substitute_relative_crossrefs(member, checkref=checkref)
+            substitute_relative_crossrefs(
+                member, checkref=checkref, incompatible_refs=incompatible_refs,
+            )
 
 def doc_value_offset_to_location(doc: Docstring, offset: int) -> tuple[int,int]:
     """

@@ -1,4 +1,4 @@
-#  Copyright (c) 2022-2025.   Analog Devices Inc.
+#  Copyright (c) 2022-2026.   Analog Devices Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ from griffe import Class, Docstring, Function, Module, Object, LinesCollection
 
 # noinspection PyProtectedMember
 from mkdocstrings_handlers.python_xref.crossref import (
+    IncompatibleRef,
     _RE_CROSSREF,
     _RE_REL_CROSSREF,
     _RelativeCrossrefProcessor,
@@ -280,3 +281,172 @@ def test_griffe() -> None:
     )
     substitute_relative_crossrefs(myproj)
     # TODO - grovel output
+
+
+def test_incompatible_refs() -> None:
+    """Test detection of incompatible cross-references."""
+    mod1 = Module(name="mod1", filepath=Path("mod1.py"))
+    mod2 = Module(name="mod2", parent=mod1, filepath=Path("mod2.py"))
+    mod1.members.update(mod2=mod2)
+    cls1 = Class(name="Class1", parent=mod2)
+    mod2.members.update(Class1=cls1)
+    meth1 = Function(name="meth1", parent=cls1)
+    cls1.members.update(meth1=meth1)
+
+    def check_incompat(
+        parent: Object,
+        title: str,
+        ref: str,
+        *,
+        expected_reasons: list[str] | None = None,
+        expected_replacement: str = "",
+    ) -> IncompatibleRef | None:
+        """Test incompatible ref detection for a single crossref."""
+        crossref = f"[{title}][{ref}]"
+        doc = Docstring(parent=parent, value=crossref, lineno=1)
+        incompat: list[IncompatibleRef] = []
+        match = _RE_CROSSREF.search(doc.value)
+        assert match is not None
+        _RelativeCrossrefProcessor(doc, incompatible_refs=incompat)(match)
+        if expected_reasons is None:
+            assert len(incompat) == 0, f"Expected no incompatibilities, got {incompat}"
+            return None
+        assert len(incompat) == 1, f"Expected 1 incompatibility, got {len(incompat)}"
+        result = incompat[0]
+        for reason in expected_reasons:
+            assert any(reason in r for r in result.reasons), (
+                f"Expected reason containing '{reason}' in {result.reasons}"
+            )
+        if expected_replacement:
+            assert result.replacement == expected_replacement
+        return result
+
+    # Standard syntax: no incompatibility
+    check_incompat(meth1, "foo", "..bar", expected_reasons=None)
+    check_incompat(cls1, "foo", ".", expected_reasons=None)
+    check_incompat(meth1, "foo", "..", expected_reasons=None)
+    check_incompat(meth1, "foo", "...", expected_reasons=None)
+
+    # Caret specifier: incompatible
+    check_incompat(
+        meth1, "foo", "^",
+        expected_reasons=["'^' caret"],
+        expected_replacement="[foo][..]",
+    )
+    check_incompat(
+        meth1, "foo", "^.",
+        expected_reasons=["'^' caret"],
+        expected_replacement="[foo][..]",
+    )
+    check_incompat(
+        meth1, "foo", "^.bar",
+        expected_reasons=["'^' caret"],
+        expected_replacement="[foo][..bar]",
+    )
+    check_incompat(
+        meth1, "foo", "^^",
+        expected_reasons=["'^' caret"],
+        expected_replacement="[foo][...]",
+    )
+
+    # Class specifier: incompatible
+    check_incompat(
+        meth1, "foo", "(c)",
+        expected_reasons=["'(c)' class"],
+        expected_replacement="[foo][..]",
+    )
+    check_incompat(
+        meth1, "foo", "(c).",
+        expected_reasons=["'(c)' class"],
+        expected_replacement="[foo][..]",
+    )
+    check_incompat(
+        meth1, "foo", "(C).baz",
+        expected_reasons=["'(c)' class"],
+        expected_replacement="[foo][..baz]",
+    )
+    check_incompat(
+        meth1, "foo", "(C).baz.",
+        expected_reasons=["'(c)' class", "trailing '.'"],
+        expected_replacement="[foo][..baz.foo]",
+    )
+
+    # Module specifier: incompatible
+    check_incompat(
+        meth1, "foo", "(m).",
+        expected_reasons=["'(m)' module"],
+        expected_replacement="[foo][...]",
+    )
+    check_incompat(
+        meth1, "foo", "(m).bar.",
+        expected_reasons=["'(m)' module", "trailing '.'"],
+        expected_replacement="[foo][...bar.foo]",
+    )
+
+    # Package specifier: incompatible
+    check_incompat(
+        meth1, "Class1", "(p).",
+        expected_reasons=["'(p)' package"],
+        expected_replacement="[Class1][....]",
+    )
+    check_incompat(
+        meth1, "Class1", "(p).mod2.",
+        expected_reasons=["'(p)' package", "trailing '.'"],
+        expected_replacement="[Class1][....mod2.Class1]",
+    )
+
+    # Trailing dot only (no parent specifier): incompatible
+    check_incompat(
+        meth1, "foo", "mod3.",
+        expected_reasons=["trailing '.'"],
+        expected_replacement="[foo][mod3.foo]",
+    )
+
+    # Trailing dot after name with dot-prefix up specifier: incompatible
+    check_incompat(
+        meth1, "bar", "..foo.",
+        expected_reasons=["trailing '.'"],
+        expected_replacement="[bar][..foo.bar]",
+    )
+
+    # Question mark prefix: incompatible
+    check_incompat(
+        cls1, "foo", "?.",
+        expected_reasons=["leading '?'"],
+        expected_replacement="[foo][.]",
+    )
+    check_incompat(
+        cls1, "foo", "?mod1.mod2.Class1.foo",
+        expected_reasons=["leading '?'"],
+        expected_replacement="[foo][mod1.mod2.Class1.foo]",
+    )
+    check_incompat(
+        meth1, "foo", "?(m).",
+        expected_reasons=["'(m)' module", "leading '?'"],
+        expected_replacement="[foo][...]",
+    )
+
+
+
+def test_substitute_incompatible_refs() -> None:
+    """Test incompatible ref collection through substitute_relative_crossrefs."""
+    mod1 = Module(name="mod1", filepath=Path("mod1.py"))
+    cls1 = Class(name="Class1", parent=mod1)
+    mod1.members["Class1"] = cls1
+    meth1 = Function(name="meth1", parent=cls1)
+    cls1.members["meth1"] = meth1
+
+    meth1.docstring = Docstring(
+        "[foo][(c).] [bar][..bar]",
+        parent=meth1,
+        lineno=10,
+    )
+
+    incompat: list[IncompatibleRef] = []
+    substitute_relative_crossrefs(mod1, incompatible_refs=incompat)
+
+    # (c). is incompatible, .. is standard
+    assert len(incompat) == 1
+    assert incompat[0].original == "[foo][(c).]"
+    assert incompat[0].replacement == "[foo][..]"
+    assert any("(c)" in r for r in incompat[0].reasons)
