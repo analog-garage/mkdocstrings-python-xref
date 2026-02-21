@@ -126,6 +126,29 @@ reference expression with a `?`, for example:
 This function returns a [Path][?pathlib.] instance.
 ```
 
+## Migrating to standard mkdocstrings-python
+
+If you want to migrate from this extension to the standard [mkdocstrings-python][mkdocstrings_python]
+handler, you can use the `compatibility_check` and `compatibility_patch` options to help
+identify and convert incompatible cross-reference syntax.
+
+The following syntax elements are specific to this extension and not supported by the
+standard handler:
+
+| Syntax | Description | Standard equivalent |
+|--------|-------------|-------------------|
+| `^`, `^^`, ... | Caret parent specifier | `..`, `...`, ... (dot prefix) |
+| `(c)` | Class specifier | Equivalent number of leading dots |
+| `(m)` | Module specifier | Equivalent number of leading dots |
+| `(p)` | Package specifier | Equivalent number of leading dots |
+| Trailing `.` after a name | Append title to reference | Expand title inline, e.g. `[foo][bar.]` → `[foo][bar.foo]` |
+| Leading `?` | Suppress reference checking | Remove the `?` |
+
+To check for incompatibilities, set `compatibility_check` to `"warn"` or `"error"` in your
+handler options. To generate a patch file that converts all incompatible references to
+standard form, set `compatibility_patch` to a file path. See the [configuration](config.md)
+page for examples.
+
 [mkdocstrings]: https://mkdocstrings.github.io/
 [mkdocstrings_python]: https://mkdocstrings.github.io/python/
 [relative-crossref-issue]: https://github.com/mkdocstrings/python/issues/27
