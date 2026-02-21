@@ -148,7 +148,8 @@ standard handler:
 To check for incompatibilities, set `compatibility_check` to `"warn"` or `"error"` in your
 handler options. To generate a patch file that converts all incompatible references to
 standard form, set `compatibility_patch` to a file path. See the [configuration](config.md)
-page for examples.
+page for examples. Setting `compatibility_patch` implies a `compatibility_check` of 
+`"warn"` if not set explicitly.
 
 [mkdocstrings]: https://mkdocstrings.github.io/
 [mkdocstrings_python]: https://mkdocstrings.github.io/python/
