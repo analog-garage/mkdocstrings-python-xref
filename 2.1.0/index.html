@@ -940,7 +940,8 @@ standard handler:</p>
 <p>To check for incompatibilities, set <code>compatibility_check</code> to <code>"warn"</code> or <code>"error"</code> in your
 handler options. To generate a patch file that converts all incompatible references to
 standard form, set <code>compatibility_patch</code> to a file path. See the <a href="config/">configuration</a>
-page for examples.</p>
+page for examples. Setting <code>compatibility_patch</code> implies a <code>compatibility_check</code> of 
+<code>"warn"</code> if not set explicitly.</p>
 
 
 
