@@ -74,6 +74,8 @@ class PythonRelXRefHandler(PythonHandler):
         self.compatibility_patch: str | Literal[False] = (
             config.options.pop('compatibility_patch', False)
         )
+        if self.compatibility_patch and not self.compatibility_check:
+            self.compatibility_check = "warn"
         self._incompatible_refs: list[IncompatibleRef] = []
         super().__init__(config, base_dir, **kwargs)
         if self.compatibility_patch:
