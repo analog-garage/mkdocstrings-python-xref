@@ -129,7 +129,8 @@ This function returns a [Path][?pathlib.] instance.
 ## Migrating to standard mkdocstrings-python
 
 If you want to migrate from this extension to the standard [mkdocstrings-python][mkdocstrings_python]
-handler, you can use the `compatibility_check` and `compatibility_patch` options to help
+handler, or just want to maintain compatibility with it, then
+you can use the `compatibility_check` and `compatibility_patch` options to help
 identify and convert incompatible cross-reference syntax.
 
 The following syntax elements are specific to this extension and not supported by the
