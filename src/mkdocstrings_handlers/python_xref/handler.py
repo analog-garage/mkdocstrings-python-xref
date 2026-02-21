@@ -224,13 +224,21 @@ def _generate_patch(refs: list[IncompatibleRef]) -> str:
     for ref in refs:
         by_file[ref.filepath].append(ref)
 
+    cwd = Path.cwd()
     patch_parts: list[str] = []
     for filepath, file_refs in sorted(by_file.items()):
         try:
-            original_lines = Path(filepath).read_text(encoding="utf-8").splitlines(keepends=True)
+            abs_path = Path(filepath)
+            original_lines = abs_path.read_text(encoding="utf-8").splitlines(keepends=True)
         except OSError:
             logger.warning("Cannot read file for patch: %s", filepath)
             continue
+
+        # Use relative path for git apply compatibility
+        try:
+            rel_path = str(abs_path.relative_to(cwd))
+        except ValueError:
+            rel_path = filepath
 
         modified_lines = list(original_lines)
         # Sort refs by line (descending) to apply replacements from bottom to top
@@ -256,8 +264,8 @@ def _generate_patch(refs: list[IncompatibleRef]) -> str:
             diff = difflib.unified_diff(
                 original_lines,
                 modified_lines,
-                fromfile=f"a/{filepath}",
-                tofile=f"b/{filepath}",
+                fromfile=f"a/{rel_path}",
+                tofile=f"b/{rel_path}",
             )
             patch_parts.append(''.join(diff))
 
