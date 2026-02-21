@@ -1776,8 +1776,8 @@ packages:
   timestamp: 1764784251344
 - pypi: ./
   name: mkdocstrings-python-xref
-  version: 2.0.1
-  sha256: 484186e584e5e1b652524a054fcd232c06789f38ffb62859fece09124c7c732a
+  version: 2.1.0
+  sha256: ab27caa6e6baf57fd4abde7214ed6b7095cb6396e175e4b226451397c7f845e6
   requires_dist:
   - griffe>=1.0
   - mkdocstrings-python>=2.0

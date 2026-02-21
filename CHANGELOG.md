@@ -3,6 +3,13 @@
 *Note that versions roughly correspond to the version of mkdocstrings-python that they 
 are compatible with.*
 
+## 2.1.0
+
+* Added `compatibility_check` option to warn or error on cross-reference syntax that
+  is not supported by the standard mkdocstrings-python handler (#60)
+* Added `compatibility_patch` option to generate a patch file converting incompatible
+  cross-references to standard form (#60)
+
 ## 2.0.1
 
 * Fix extended template configuration (#56)
