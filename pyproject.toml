@@ -311,6 +311,7 @@ env = {VERSION = "$(cat src/mkdocstrings_handlers/python_xref/VERSION)"}
 cmd = "whl2conda convert dist/mkdocstrings_python_xref-$VERSION-py3-none-any.whl -w dist --overwrite"
 depends-on = ["build-wheel"]
 inputs = ["dist/mkdocstrings_python_xref-*-none-any.whl"]
+outputs = ["dist/mkdocstrings_python_xref-*-py_0.conda"]
 
 # upload tasks
 [tool.pixi.tasks.check-upload-wheel]

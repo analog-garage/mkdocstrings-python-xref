@@ -1777,7 +1777,7 @@ packages:
 - pypi: ./
   name: mkdocstrings-python-xref
   version: 2.1.0
-  sha256: 769a937a41242fd9af524a74933d244250ac81185862bec1522c307a2576ff02
+  sha256: ab27caa6e6baf57fd4abde7214ed6b7095cb6396e175e4b226451397c7f845e6
   requires_dist:
   - griffe>=1.0
   - mkdocstrings-python>=2.0
