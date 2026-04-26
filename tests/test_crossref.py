@@ -25,7 +25,7 @@ from typing import Callable, Optional
 
 import griffe
 import pytest
-from griffe import Class, Docstring, Function, Module, Object, LinesCollection
+from griffe import Alias, Class, Docstring, Function, Module, Object, LinesCollection
 
 # noinspection PyProtectedMember
 from mkdocstrings_handlers.python_xref.crossref import (
@@ -269,9 +269,11 @@ def test_doc_value_offset_to_location() -> None:
 
 def test_griffe() -> None:
     """
-    Test substitution on griffe rep of local project
-    Returns:
+    Test substitution on griffe rep of local project (including external imports).
 
+    The test project contains a module (external_imports.py) that imports from
+    the stdlib ``os`` and ``pathlib`` packages. This test verifies that
+    ``substitute_relative_crossrefs`` terminates without infinite recursion.
     """
     this_dir = Path(__file__).parent
     test_src_dir  = this_dir / "project" / "src"
@@ -281,6 +283,118 @@ def test_griffe() -> None:
     )
     substitute_relative_crossrefs(myproj)
     # TODO - grovel output
+
+
+def test_no_recurse_into_external_aliases() -> None:
+    """Verify that substitute_relative_crossrefs does not recurse into external aliases.
+
+    This is a regression test for GitHub issue #62. When a module has an Alias member
+    pointing to an external package, the function must skip it rather than recursing
+    into the external package tree.
+    """
+    # Build a synthetic griffe structure:
+    #   myproj (Module)
+    #     mymod (Module)
+    #       MyClass (Class)  -- internal, should be processed
+    #       ext_alias (Alias -> extpkg.ExtClass)  -- external, must NOT be followed
+    #   extpkg (Module)
+    #     ExtClass (Class)  -- simulates external package content
+
+    # Create the "external" package -- simulates something like networkx
+    extpkg = Module(name="extpkg", filepath=Path("extpkg/__init__.py"))
+    ext_cls = Class(name="ExtClass", parent=extpkg)
+    extpkg.members["ExtClass"] = ext_cls
+    ext_cls.docstring = Docstring(
+        "External class docstring.",
+        parent=ext_cls,
+        lineno=1,
+    )
+
+    # Create the project being documented
+    myproj = Module(name="myproj", filepath=Path("myproj/__init__.py"))
+    mymod = Module(name="mymod", parent=myproj, filepath=Path("myproj/mymod.py"))
+    myproj.members["mymod"] = mymod
+
+    # Internal class with a relative cross-reference to process
+    my_cls = Class(name="MyClass", parent=mymod)
+    mymod.members["MyClass"] = my_cls
+    my_cls.docstring = Docstring(
+        "My class. See [MyClass][.].",
+        parent=my_cls,
+        lineno=1,
+    )
+
+    # Alias pointing to the external package member
+    ext_alias = Alias("ExtClass", ext_cls, parent=mymod)
+    mymod.members["ExtClass"] = ext_alias
+
+    # This must terminate without recursing into extpkg
+    substitute_relative_crossrefs(myproj)
+
+    # Internal docstring should be processed (relative ref resolved).
+    # [MyClass][.] in a Class docstring means: current object (MyClass) + append title (MyClass)
+    assert my_cls.docstring is not None
+    assert "[MyClass][myproj.mymod.MyClass.MyClass]" in my_cls.docstring.value
+
+    # External class docstring must NOT have been modified
+    assert ext_cls.docstring is not None
+    assert ext_cls.docstring.value == "External class docstring."
+
+
+def test_cycle_detection() -> None:
+    """Verify that substitute_relative_crossrefs handles cyclic aliases without infinite recursion.
+
+    This is a regression test for GitHub issue #62. When a project has cyclic imports
+    (module A imports from module B which imports back from module A), the function
+    must detect the cycle and terminate.
+    """
+    # Build a cyclic alias structure within the same project:
+    #   myproj (Module)
+    #     mod_a (Module)
+    #       ClassA (Class) with a docstring
+    #       class_b_alias (Alias -> myproj.mod_b.ClassB)  -- creates a potential cycle
+    #     mod_b (Module)
+    #       ClassB (Class) with a docstring
+    #       class_a_alias (Alias -> myproj.mod_a.ClassA)  -- closes the cycle
+
+    myproj = Module(name="myproj", filepath=Path("myproj/__init__.py"))
+    mod_a = Module(name="mod_a", parent=myproj, filepath=Path("myproj/mod_a.py"))
+    mod_b = Module(name="mod_b", parent=myproj, filepath=Path("myproj/mod_b.py"))
+    myproj.members["mod_a"] = mod_a
+    myproj.members["mod_b"] = mod_b
+
+    class_a = Class(name="ClassA", parent=mod_a)
+    mod_a.members["ClassA"] = class_a
+    class_a.docstring = Docstring(
+        "Class A. See [ClassA][.].",
+        parent=class_a,
+        lineno=1,
+    )
+
+    class_b = Class(name="ClassB", parent=mod_b)
+    mod_b.members["ClassB"] = class_b
+    class_b.docstring = Docstring(
+        "Class B. See [ClassB][.].",
+        parent=class_b,
+        lineno=1,
+    )
+
+    # Cyclic aliases: A's module imports ClassB, B's module imports ClassA
+    alias_b_in_a = Alias("ClassB", class_b, parent=mod_a)
+    mod_a.members["ClassB"] = alias_b_in_a
+
+    alias_a_in_b = Alias("ClassA", class_a, parent=mod_b)
+    mod_b.members["ClassA"] = alias_a_in_b
+
+    # Must terminate without RecursionError
+    substitute_relative_crossrefs(myproj)
+
+    # Both internal docstrings should be processed.
+    # [ClassA][.] in ClassA means: current object (ClassA) + append title (ClassA)
+    assert class_a.docstring is not None
+    assert "[ClassA][myproj.mod_a.ClassA.ClassA]" in class_a.docstring.value
+    assert class_b.docstring is not None
+    assert "[ClassB][myproj.mod_b.ClassB.ClassB]" in class_b.docstring.value
 
 
 def test_incompatible_refs() -> None:
