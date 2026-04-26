@@ -109,6 +109,33 @@ These are demonstrated here:
 This has been [proposed as a feature in the standard python handler][relative-crossref-issue]
 but has not yet been accepted.
 
+??? question "Which expressions are recognized as cross-references?"
+
+    Because relative cross-reference substitution runs on raw docstring text *before*
+    Markdown rendering, the handler uses some heuristics to avoid mistakenly processing
+    patterns that look like cross-references but are not — such as examples of array
+    indexing (`tensor[i][j]`), slice notation (`data[1:n]`), or other common Python
+    constructs.
+
+    In practice this should not affect legitimate cross-references.  However, if you
+    find that a reference is not being expanded as expected, here are things to check:
+
+    * Make sure there is no identifier character (letter, digit, ``_``) or ``]``
+      immediately before the opening ``[``. Add a space if necessary.
+    * Avoid commas or colons in the link *title* (the first ``[...]``).  These
+      characters suggest indexing or slice syntax rather than a link title.
+    * The link *reference* (the second ``[...]``) must be empty, a dotted Python
+      name, or a supported relative cross-reference expression.  It must not start
+      with a digit or contain commas or colons.
+    * If the cross-reference appears inside an inline code span (surrounded by
+      backticks), it will not be processed — move it outside the code span.
+
+    The standard [mkdocstrings-python] handler processes cross-references differently:
+    it delegates all ``[title][ref]`` expressions to Python-Markdown's full rendering
+    pipeline, which resolves them (or silently ignores them if they cannot be resolved)
+    after Markdown processing is complete.  That pipeline is not available during the
+    pre-processing step where relative cross-references are expanded.
+
 ## Cross-reference checking
 
 If `relative_crossrefs` and `check_crossrefs` are both enabled (the latter is true by default),
@@ -128,7 +155,7 @@ This function returns a [Path][?pathlib.] instance.
 
 ## Migrating to standard mkdocstrings-python
 
-If you want to migrate from this extension to the standard [mkdocstrings-python][mkdocstrings_python]
+If you want to migrate from this extension to the standard [mkdocstrings-python]
 handler, or just want to maintain compatibility with it, then
 you can use the `compatibility_check` and `compatibility_patch` options to help
 identify and convert incompatible cross-reference syntax.
@@ -152,5 +179,5 @@ page for examples. Setting `compatibility_patch` implies a `compatibility_check`
 `"warn"` if not set explicitly.
 
 [mkdocstrings]: https://mkdocstrings.github.io/
-[mkdocstrings_python]: https://mkdocstrings.github.io/python/
+[mkdocstrings-python]: https://mkdocstrings.github.io/python/
 [relative-crossref-issue]: https://github.com/mkdocstrings/python/issues/27

@@ -3,6 +3,12 @@
 *Note that versions roughly correspond to the version of mkdocstrings-python that they 
 are compatible with.*
 
+## 2.1.1
+
+* Do not recurse into external imports when translating cross-references (#62)
+* Ignore some [..][..] doc-string references that cannot be cross-references
+  (e.g. use for array-indexing syntax or optional arguments). (#63)
+
 ## 2.1.0
 
 * Added `compatibility_check` option to warn or error on cross-reference syntax that

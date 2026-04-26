@@ -74,8 +74,26 @@ def _re_named(name: str, exp: str, optional: bool = False) -> str:
     optchar = "?" if optional else ""
     return f"(?P<{name}>{exp}){optchar}"
 
-_RE_CROSSREF = re.compile(r"\[([^\[\]]+?)\]\[([^\[\]]*?)\]")
-"""Regular expression that matches general cross-references."""
+_RE_CROSSREF = re.compile(
+    r"(?<![a-zA-Z0-9_\]`])"        # not preceded by identifier char, ], or `
+    r"\[(?!\d+\])"                   # title bracket: title must not be purely numeric
+    r"([^\[\],:]+?)"                 # title: 1+ chars, no brackets/commas/colons
+    r"\]\["                          # close title bracket, open ref bracket
+    r"([a-zA-Z_?^.(][^\[\],:]*?|)"  # ref: empty OR starts with a valid crossref start char
+    r"\]"
+)
+"""Regular expression that matches general cross-references.
+
+Matches expressions of the form ``[title][ref]`` with the following restrictions
+to avoid false positives from array indexing, slices, and similar constructs:
+
+- Not preceded by an identifier character (letter, digit, ``_``), ``]``, or a
+  backtick.  This prevents matching expressions like ``array[i][j]``.
+- The title (first ``[...]``) must not consist solely of digits, and must not
+  contain commas or colons (which indicate indexing or slice expressions).
+- The ref (second ``[...]``) must be empty or start with a letter, ``_``, ``?``,
+  ``^``, ``.``, or ``(``. It must not contain commas or colons.
+"""
 
 _RE_REL_CROSSREF = re.compile(r"\[([^\[\]]+?)\]\[(\??(?:[\.^\(][^\]]*?|[^\]]*?\.))\]")
 """Regular expression that matches relative cross-reference expressions in doc-string.
@@ -451,8 +469,16 @@ def substitute_relative_crossrefs(
     obj: Alias|Object,
     checkref: Optional[Callable[[str], bool]] = None,
     incompatible_refs: Optional[list[IncompatibleRef]] = None,
+    *,
+    _root_pkg: str = "",
+    _visited: set[int] | None = None,
 ) -> None:
     """Recursively expand relative cross-references in all docstrings in tree.
+
+    Only objects within the same root package are processed. Aliases that point
+    to external packages are skipped to avoid recursing into third-party or stdlib
+    code. Cycle detection via ``_visited`` prevents infinite recursion from cyclic
+    imports within the project.
 
     Arguments:
         obj: a Griffe [Object][griffe.] whose docstrings should be modified
@@ -460,7 +486,14 @@ def substitute_relative_crossrefs(
             Should return True if valid, False if not valid.
         incompatible_refs: if provided, incompatible cross-references will be appended
             to this list.
+        _root_pkg: private — root package name used to filter external aliases.
+            Derived automatically from ``obj`` on the first call; do not pass explicitly.
+        _visited: private — set of already-visited object ids for cycle detection.
+            Allocated automatically on the first call; do not pass explicitly.
     """
+    if _visited is None:
+        _visited = set()
+
     if isinstance(obj, Alias):
         try:
             obj = obj.target
@@ -468,6 +501,16 @@ def substitute_relative_crossrefs(
             # If alias could not be resolved, it probably refers
             # to an external package, not be documented.
             return
+
+    # Cycle detection: if we've already processed this object, stop.
+    obj_id = id(obj)
+    if obj_id in _visited:
+        return
+    _visited.add(obj_id)
+
+    # Determine the root package on the first (non-recursive) call.
+    if not _root_pkg:
+        _root_pkg = obj.canonical_path.split('.')[0]
 
     doc = obj.docstring
 
@@ -480,10 +523,20 @@ def substitute_relative_crossrefs(
         )
 
     for member in obj.members.values():
-        if isinstance(member, (Alias,Object)):  # pragma: no branch
-            substitute_relative_crossrefs(
-                member, checkref=checkref, incompatible_refs=incompatible_refs,
-            )
+        if isinstance(member, Alias):
+            # Resolve the alias target; skip if it belongs to a different (external) package.
+            try:
+                target = member.target
+            except GriffeError:
+                continue  # Unresolvable alias — likely an external package not being documented.
+            if target.canonical_path.split('.')[0] != _root_pkg:
+                continue  # External package alias — don't recurse into third-party/stdlib code.
+        elif not isinstance(member, Object):  # pragma: no cover
+            continue  # Defensive: griffe members should always be Alias or Object.
+        substitute_relative_crossrefs(
+            member, checkref=checkref, incompatible_refs=incompatible_refs,
+            _root_pkg=_root_pkg, _visited=_visited,
+        )
 
 def doc_value_offset_to_location(doc: Docstring, offset: int) -> tuple[int,int]:
     """
