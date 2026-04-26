@@ -285,6 +285,76 @@ def test_griffe() -> None:
     # TODO - grovel output
 
 
+def test_re_crossref_restrictions() -> None:
+    """Tests for _RE_CROSSREF false-positive prevention (issue #63).
+
+    Verifies the regex does NOT match array-indexing patterns, slice notation,
+    backtick-preceded expressions, etc., while still matching legitimate
+    cross-references.
+    """
+    def assert_matches(text: str, expected_count: int, *, msg: str = "") -> None:
+        """Assert the number of _RE_CROSSREF matches in text."""
+        matches = _RE_CROSSREF.findall(text)
+        assert len(matches) == expected_count, (
+            f"{msg or text!r}: expected {expected_count} match(es), got {len(matches)}: {matches}"
+        )
+
+    # ── Positive cases: should still match ───────────────────────────────────
+
+    # Basic cross-references
+    assert_matches("[foo][bar]", 1)
+    assert_matches("[foo][bar.baz.Qux]", 1)
+    assert_matches("[foo][]", 1, msg="empty ref allowed")
+    assert_matches("[foo][.]", 1, msg="current-object ref")
+    assert_matches("[foo][.bar]", 1, msg="dot-relative ref")
+    assert_matches("[foo][..]", 1, msg="up-one-level ref")
+    assert_matches("[foo][(c)]", 1, msg="class specifier")
+    assert_matches("[foo][(m).bar]", 1, msg="module specifier with name")
+    assert_matches("[foo][^.bar]", 1, msg="caret specifier")
+    assert_matches("[foo][?bar.baz]", 1, msg="question-mark suppress-check prefix")
+    assert_matches("[foo][?.bar]", 1, msg="question-mark with relative ref")
+    assert_matches("[foo bar][baz]", 1, msg="title with space")
+    assert_matches("[`foo`][bar]", 1, msg="backtick-wrapped title")
+    assert_matches("[foo.Bar][baz]", 1, msg="dotted title")
+    assert_matches("[foo123][bar]", 1, msg="title starting with letters followed by digits")
+    assert_matches("[foo][bar] and [baz][qux]", 2, msg="two crossrefs separated by space")
+
+    # ── Negative cases: must NOT match ───────────────────────────────────────
+
+    # Preceded by identifier character → array indexing
+    assert_matches("array[1][2]", 0, msg="identifier before [")
+    assert_matches("foo[bar][baz]", 0, msg="identifier before first [")
+    assert_matches("x_y[a][b]", 0, msg="underscore-terminated name before [")
+
+    # Preceded by ] → chained subscripts
+    assert_matches("[a][b][c][d]", 1, msg="chained brackets: only first pair matches")
+
+    # Preceded by backtick → inside inline code span
+    assert_matches("`[foo][bar]", 0, msg="opening backtick before [")
+
+    # Title is purely numeric
+    assert_matches("[1][foo]", 0, msg="pure-digit title")
+    assert_matches("[42][bar.baz]", 0, msg="pure-digit title (2)")
+    assert_matches("[0][1]", 0, msg="both brackets are pure digits")
+
+    # Title contains comma → tuple/array indexing
+    assert_matches("[a, b][foo]", 0, msg="comma in title")
+    assert_matches("[1, 2][foo]", 0, msg="comma in title (digits)")
+
+    # Title contains colon → slice notation
+    assert_matches("[1:2][foo]", 0, msg="colon in title (slice)")
+    assert_matches("[a:b][foo]", 0, msg="colon in title")
+
+    # Ref starts with a digit → not a valid Python identifier or xref
+    assert_matches("[foo][1]", 0, msg="digit-only ref")
+    assert_matches("[foo][123]", 0, msg="digit-only ref (multi)")
+
+    # Ref contains colon or comma → slice/tuple, not a ref
+    assert_matches("[foo][a:b]", 0, msg="colon in ref")
+    assert_matches("[foo][1:2]", 0, msg="slice in ref")
+    assert_matches("[foo][a, b]", 0, msg="comma in ref")
+
+
 def test_no_recurse_into_external_aliases() -> None:
     """Verify that substitute_relative_crossrefs does not recurse into external aliases.
 

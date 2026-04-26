@@ -74,8 +74,26 @@ def _re_named(name: str, exp: str, optional: bool = False) -> str:
     optchar = "?" if optional else ""
     return f"(?P<{name}>{exp}){optchar}"
 
-_RE_CROSSREF = re.compile(r"\[([^\[\]]+?)\]\[([^\[\]]*?)\]")
-"""Regular expression that matches general cross-references."""
+_RE_CROSSREF = re.compile(
+    r"(?<![a-zA-Z0-9_\]`])"        # not preceded by identifier char, ], or `
+    r"\[(?!\d+\])"                   # title bracket: title must not be purely numeric
+    r"([^\[\],:]+?)"                 # title: 1+ chars, no brackets/commas/colons
+    r"\]\["                          # close title bracket, open ref bracket
+    r"([a-zA-Z_?^.(][^\[\],:]*?|)"  # ref: empty OR starts with a valid crossref start char
+    r"\]"
+)
+"""Regular expression that matches general cross-references.
+
+Matches expressions of the form ``[title][ref]`` with the following restrictions
+to avoid false positives from array indexing, slices, and similar constructs:
+
+- Not preceded by an identifier character (letter, digit, ``_``), ``]``, or a
+  backtick.  This prevents matching expressions like ``array[i][j]``.
+- The title (first ``[...]``) must not consist solely of digits, and must not
+  contain commas or colons (which indicate indexing or slice expressions).
+- The ref (second ``[...]``) must be empty or start with a letter, ``_``, ``?``,
+  ``^``, ``.``, or ``(``. It must not contain commas or colons.
+"""
 
 _RE_REL_CROSSREF = re.compile(r"\[([^\[\]]+?)\]\[(\??(?:[\.^\(][^\]]*?|[^\]]*?\.))\]")
 """Regular expression that matches relative cross-reference expressions in doc-string.
